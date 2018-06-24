@@ -1,4 +1,4 @@
-
+﻿
 /*define function include
 function ShowMenu : options for user choose(map,speed,more changelle) & play & show hight score
 function RunSnake : play game & check flag of status game
@@ -23,6 +23,9 @@ after that show menu again
 #include <cstdlib>
 #include "ClassSnake.h"
 #include <string.h>
+#include <mmsystem.h>
+#include <thread>
+#pragma comment(lib, "winmm.lib")
 using namespace std;
 enum Direction { STOP, LEFT, RIGHT, UP, DOWN };
 HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE); // For use of SetConsoleTextAttribute()
@@ -54,6 +57,7 @@ void ControlMenu();
 void ShowConsoleCursor(bool showFlag);
 void SetWindow(int height, int width);
 void UpdateScroll();
+void RunSound();
 // define variable type
 struct Location
 {
@@ -73,6 +77,7 @@ int ponitOfScore = 0;
 Direction oldDirSnake = STOP;
 Location newplace;
 bool IsChangeTail ;
+bool IsRunThread = false;
 
 /*  x = width : y = height */ 
 void gotoxy(SHORT x,SHORT y )
@@ -303,6 +308,10 @@ void Logic() {
 	default:
 		break;
 	}
+	if (IsRunThread)
+	{
+		IsRunThread = false;
+	}
 	if (Snake.IsElementS(wLocatedFood,hLocatedFood))
 	{
 		
@@ -325,13 +334,17 @@ void Logic() {
 		gotoxy(w, h);
 		cout << "@";
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
+		PlaySound(TEXT("D:\\C++\\SolutionC++\\SnackGame\\NFF-steal-02.wav"), NULL, SND_FILENAME | SND_ASYNC);
+		//PlaySound(TEXT("..\\SnakeSource\\NFF-steal-02.wav"), NULL, SND_FILENAME | SND_ASYNC);
+		//PlaySound(TEXT("Nandemonai.ogg"), NULL, SND_FILENAME | SND_ASYNC);
+		//SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
 	}
 	if (Snake.CheckFood())
 	{
 		Snake.AddTail(Snake.isWhere[1].wL, Snake.isWhere[1].hL);
 		IsChangeTail = false;
 	}
-
+	
 }
 
 void IsDefeat() {
@@ -372,7 +385,9 @@ void ShowMenu() {
 	font->FontWeight = 14;
 	font->FontFamily = FF_DECORATIVE;
 	SetCurrentConsoleFontEx(cons, 0, font);*/
-	
+	//PlaySound(TEXT("Nandemonai.ogg"), NULL, SND_FILENAME | SND_SYNC);
+	//PlaySound(TEXT(".\\SnakeSource\\Nandemonai.wav"), NULL, SND_FILENAME | SND_LOOP | SND_ASYNC);
+	sndPlaySound(TEXT("D:\\C++\\SolutionC++\\SnackGame\\Nandemonai.wav"), SND_FILENAME | SND_LOOP | SND_ASYNC);
 	//ShowConsoleCursor(false);
 	SetConsoleTitle(TEXT("Snake @Shekcon"));
 	SetConsoleTextAttribute(console, 241);
@@ -424,7 +439,7 @@ void ShowMenu() {
 	printf("         | \\/.    //  | _ _ |/|  \n");
 	printf("          \\_ | \\/ /    \\ _ _ \\\\\\  \n");
 	printf("              \\__/      \\ _ _ \\|\\ \n");
-	ShowConsoleCursor(true);
+	//ShowConsoleCursor(true);
 	
 	ControlMenu();
 }
@@ -569,6 +584,8 @@ void ControlMenu() {
 				ControlMenu();
 				break;
 			case 13:
+				PlaySound(NULL, NULL, 0);
+				//PlaySound(TEXT("D:\\C+\\SolutionC++\\SnackGame\\Nandemonai.wav"), NULL, SND_FILENAME  | SND_ASYNC |SND_NODEFAULT);
 				ShowConsoleCursor(false);
 				Inital();
 				RunSnack();
@@ -620,7 +637,6 @@ void UpdateScroll() {
 		csbi.srWindow.Bottom - csbi.srWindow.Top + 1
 	};
 	SetConsoleScreenBufferSize(console, scrollbar);
-	HWND console2 = GetConsoleWindow();
 }
 
 void SetWindow(int height, int width) {
@@ -667,9 +683,15 @@ void Test() {
 	else cout << " wrong";
 }
 
+void RunSound(){
+	PlaySound(TEXT("NFF-steal-02.wav"), NULL, SND_SYNC);
+}
+
 void ShowLocationS() {
 	gotoxy(10, hdefault + height); 
 	cout << hLocatedSnack +1 <<":" << wLocatedSnack +1 <<"    ";
 	gotoxy(0, 0);
+	gotoxy(30, hdefault + height);
+	cout << "Coder by : @Shekcon";
 }
 
