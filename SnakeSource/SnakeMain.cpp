@@ -24,9 +24,17 @@ after that show menu again
 #include "ClassSnake.h"
 using namespace std;
 enum Direction { STOP, LEFT, RIGHT, UP, DOWN };
-
+HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE); // For use of SetConsoleTextAttribute()
 #define		wdefault	10
 #define		hdefault	6
+#define		NEWGAME		8
+#define		HIGHSCORE	9
+#define		SPEED		10
+#define		CONTROL		11
+#define		EXIT		12
+#define		ARROW		42
+#define		PONITER		43
+#define		TEXTS		44
 //define function
 void RunSnack();
 void Inital();
@@ -41,6 +49,7 @@ void CheckRules();
 void gotoxy(SHORT x,SHORT y);
 void Test();
 void ShowLocationS();
+void ControlMenu();
 // define variable type
 struct Location
 {
@@ -320,6 +329,8 @@ void ShowMenu() {
 	font->FontWeight = 16;
 	font->FontFamily = FF_DECORATIVE;
 	SetCurrentConsoleFontEx(cons, 0, font);*/
+
+	SetConsoleTextAttribute(console, 241);
 	system("cls"); //clrscr(); //clear the console
 				   //Ascii art reference: http://www.chris.com/ascii/index.php?art=animals/reptiles/snakes
 	printf("\n\n\n");
@@ -338,6 +349,175 @@ void ShowMenu() {
 	printf("\t    Press Any Key To Continue...	\n");
 	printf("\n");
 	_getch();
+	system("cls");
+	SetConsoleTextAttribute(console, 250);
+	cout << endl;
+	printf("           ---_ ...... _/_ -     \n");
+	printf("          /  . .    ./ .'*\\ \\     \n");
+	printf("          : '_-        /__-'  \\.  \n");
+	printf("         /                      ) \n");
+	printf("       _/                  >   .'  \n");
+	printf("     /   .   .       _.-\" / .'    \n");
+	printf("     \\           __/\" / .'/|    \n");
+	printf("       \\ '--  .-\" /     //' |\\|   \n");
+	printf("        \\|  \\ | /     //_ _ |/| \n");
+	printf("         `.  \\:     //|_ _ _|\\| CODER \n");
+	printf("         | \\/.    //  | _ _ |/| SHEKCON \n");
+	printf("          \\_ | \\/ /    \\ _ _ \\\\\\  \n");
+	printf("              \\__/      \\ _ _ \\|\\ \n");
+	ControlMenu();
+}
+
+void ControlMenu() {
+	SetConsoleTextAttribute(console, 251);
+	gotoxy(38, 4);				printf("Snake Game");
+	SetConsoleTextAttribute(console, 241);
+	gotoxy(ARROW,   NEWGAME);	printf("> NEW GAME");
+	SetConsoleTextAttribute(console, 240);
+	gotoxy(ARROW,   HIGHSCORE); printf("  HIGH SCORE");
+	gotoxy(ARROW,   SPEED);     printf("  SPEED");
+	gotoxy(ARROW,   CONTROL);	printf("  CONTROL");
+	gotoxy(ARROW,   EXIT);		printf("  EXIT");
+	gotoxy(PONITER, NEWGAME);
+	SHORT where = 8;
+	do
+	{
+		if(_kbhit())
+		{
+			switch (_getch())
+			{
+			case 'w':
+			{
+				if (where == 8)
+				{
+
+					gotoxy(ARROW, NEWGAME); cout << "  NEW GAME";
+					SetConsoleTextAttribute(console, 241);
+					gotoxy(ARROW, EXIT); cout << "> EXIT";
+					gotoxy(PONITER, EXIT);
+					where = 12;
+					SetConsoleTextAttribute(console, 240);
+					break;
+				}
+				--where;
+
+				if (where == 11)
+				{
+
+					gotoxy(ARROW, EXIT); cout << "  EXIT";
+					SetConsoleTextAttribute(console, 241);
+					gotoxy(ARROW, CONTROL); cout << "> CONTROL";
+					gotoxy(PONITER, CONTROL);
+					SetConsoleTextAttribute(console, 240);
+					break;
+				}
+				if (where == 10)
+				{
+
+					gotoxy(ARROW, CONTROL); cout << "  CONTROL";
+					SetConsoleTextAttribute(console, 241);
+					gotoxy(ARROW, SPEED); cout << "> SPEED";
+					gotoxy(PONITER, SPEED);
+					SetConsoleTextAttribute(console, 240);
+					break;
+				}
+				if (where == 9)
+				{
+
+					gotoxy(ARROW, SPEED); cout << "  SPEED";
+					SetConsoleTextAttribute(console, 241);
+					gotoxy(ARROW, HIGHSCORE); cout << "> HIGH SCORE";
+					gotoxy(PONITER, HIGHSCORE);
+					SetConsoleTextAttribute(console, 240);
+					break;
+				}
+				if (where == 8)
+				{
+
+					gotoxy(ARROW, HIGHSCORE); cout << "  HIGH SCORE";
+					SetConsoleTextAttribute(console, 241);
+					gotoxy(ARROW, NEWGAME); cout << "> NEW GAME";
+					gotoxy(PONITER, NEWGAME);
+					SetConsoleTextAttribute(console, 240);
+					break;
+				}
+
+			}
+			case 's':
+			{
+				if (where == 12)
+				{
+
+					gotoxy(ARROW, EXIT); cout << "  EXIT";
+					SetConsoleTextAttribute(console, 241);
+					gotoxy(ARROW, NEWGAME); cout << "> NEW GAME";
+					gotoxy(PONITER, NEWGAME);
+					where = 8;
+					SetConsoleTextAttribute(console, 240);
+					break;
+				}
+				++where;
+
+				if (where == 9)
+				{
+
+					gotoxy(ARROW, NEWGAME); cout << "  NEW GAME";
+					SetConsoleTextAttribute(console, 241);
+					gotoxy(ARROW, HIGHSCORE); cout << "> HIGH SCORE";
+					gotoxy(PONITER, HIGHSCORE);
+					SetConsoleTextAttribute(console, 240);
+					break;
+				}
+				if (where == 10)
+				{
+
+					gotoxy(ARROW, HIGHSCORE); cout << "  HIGH SCORE";
+					SetConsoleTextAttribute(console, 241);
+					gotoxy(ARROW, SPEED); cout << "> SPEED";
+					gotoxy(PONITER, SPEED);
+					SetConsoleTextAttribute(console, 240);
+					break;
+				}
+				if (where == 11)
+				{
+
+					gotoxy(ARROW, SPEED); cout << "  SPEED";
+					SetConsoleTextAttribute(console, 241);
+					gotoxy(ARROW, CONTROL); cout << "> CONTROL";
+					gotoxy(PONITER, CONTROL);
+					SetConsoleTextAttribute(console, 240);
+					break;
+				}
+				if (where == 12)
+				{
+
+					gotoxy(ARROW, CONTROL); cout << "  CONTROL";
+					SetConsoleTextAttribute(console, 241);
+					gotoxy(ARROW, EXIT); cout << "> EXIT";
+					gotoxy(PONITER, EXIT);
+					SetConsoleTextAttribute(console, 240);
+					break;
+				}
+				break;
+			}
+
+			case 'p':
+			
+				break;
+			case 27://ESC
+				ControlMenu();
+				break;
+			case 13:
+				Inital();
+				RunSnack();
+				break;
+			default:
+
+				break;
+			}
+		}
+	} while (statusGame);
+	_getch();
 }
 
 void RunSnack() {
@@ -355,8 +535,6 @@ void RunSnack() {
 
 int main() {
 	ShowMenu();
-	Inital();
-	RunSnack();
 	IsDefeat();
 	_getch();
 	return 0;
