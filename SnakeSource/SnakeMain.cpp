@@ -22,6 +22,7 @@ after that show menu again
 #include <time.h>
 #include <cstdlib>
 #include "ClassSnake.h"
+#include <string.h>
 using namespace std;
 enum Direction { STOP, LEFT, RIGHT, UP, DOWN };
 HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE); // For use of SetConsoleTextAttribute()
@@ -50,6 +51,9 @@ void gotoxy(SHORT x,SHORT y);
 void Test();
 void ShowLocationS();
 void ControlMenu();
+void ShowConsoleCursor(bool showFlag);
+void SetWindow(int height, int width);
+void UpdateScroll();
 // define variable type
 struct Location
 {
@@ -99,13 +103,17 @@ void Inital() {
 
 void DrawMap() {
 	system("cls");
+	
 	gotoxy(wdefault+width/2 -5,2);
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 241);
 	cout << "Score:" << ponitOfScore;
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 1);
 	cout << endl<<endl;
 	{
 		for (int i = 0; i < width + 2; i++)
 		{
-			if (0 == i) { cout << "\t"; }cout << "*";
+			if (0 == i) { cout << "\t"; }cout << " ";
 		}
 		cout << endl;
 		for (int i = 0; i < height; ++i)
@@ -115,27 +123,35 @@ void DrawMap() {
 				if (0 == j || (width + 2) - 1 == j)
 				{
 					if (0 == j) cout << "\t";
-					cout << "*";
+					
+					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 1);
+					cout << " ";
 				}
-				else  cout << " ";
+				else 
+				{ SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240); 
+				cout << " "; 
+				}
 
 			}
 			cout << endl;
 		}
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 1);
 		for (int i = 0; i < width + 2; i++)
 		{
 			if (0 == i) { cout << "\t"; }
-			cout << "*";
+
+			cout << " ";
 		}
 	}
 	int resultTail = Snake.TailIs();  // return id allow know TAIL's location
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
 	for (int i = 0; i <= resultTail; ++i)
 	{
 		FindWhere(i);   // goto location element i of Snake
 			switch (i)
 			{
 			case 0:
-				cout << "<";
+				cout << ">";
 				break;
 			default:
 				cout << "=";
@@ -145,9 +161,9 @@ void DrawMap() {
 	SHORT w = wdefault + wLocatedFood - 1;
 	SHORT h = hdefault + hLocatedFood - 1;
 	gotoxy(w, h);
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 241);
 	cout << "@";
-	gotoxy(0, 0);
-	
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
 }
 
 void Update()
@@ -163,10 +179,32 @@ void Update()
 			IsChangeTail = false;
 		}
 		FindWhere(0); // update HEAD   0 access HEAD
-		cout << "<";
+		switch (dirSnake)
+		{
+		case LEFT:
+			cout << ">";
+			break;
+
+		case RIGHT:
+			cout << "<";
+			break;
+
+		case UP:
+			cout << "v";
+			break;
+
+		case DOWN:
+			cout << "^";
+			break;
+
+		default:
+			break;
+		}
 		FindWhere(1);// update behind HEAD  1 access element behind HEAD
 		cout << "=";
 		gotoxy(0, 0);
+		Sleep(10);
+		
 	}
 	
 }
@@ -273,6 +311,7 @@ void Logic() {
 		Snake.isWhere[Snake.amoutOfFood].ID = Snake.TailIs();
 		ponitOfScore += 1;
 		gotoxy(wdefault + width / 2 -5, 2);
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 241);
 		cout << "Score:" << ponitOfScore;
 		do
 		{
@@ -285,7 +324,7 @@ void Logic() {
 		SHORT h = hdefault + hLocatedFood - 1;
 		gotoxy(w, h);
 		cout << "@";
-		
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
 	}
 	if (Snake.CheckFood())
 	{
@@ -297,7 +336,10 @@ void Logic() {
 
 void IsDefeat() {
 	system("cls");
-	gotoxy(25, 15);
+	SetWindow(500, 700);
+	UpdateScroll();
+	ShowConsoleCursor(false);
+	gotoxy(25, 8);
 	cout << "GAME OVER";
 	Snake.~ClassSnake();
 	Sleep(500);
@@ -320,28 +362,45 @@ void CheckRules() {
 
 /*Show menu options for user*/
 void ShowMenu() {
+	
 	/*HANDLE cons = GetStdHandle(STD_OUTPUT_HANDLE);
 	PCONSOLE_FONT_INFOEX font = new CONSOLE_FONT_INFOEX();
 	font->cbSize = sizeof(CONSOLE_FONT_INFOEX);
 	GetCurrentConsoleFontEx(cons, 0, font);
-	font->dwFontSize.X = 18;
+	font->dwFontSize.X = 14;
 	font->dwFontSize.Y = 18;
-	font->FontWeight = 16;
+	font->FontWeight = 14;
 	font->FontFamily = FF_DECORATIVE;
 	SetCurrentConsoleFontEx(cons, 0, font);*/
-
+	
+	//ShowConsoleCursor(false);
+	SetConsoleTitle(TEXT("Snake @Shekcon"));
 	SetConsoleTextAttribute(console, 241);
+	/*UpdateScroll();*/
+	HWND console = GetConsoleWindow();
+	//ShowScrollBar(console, SB_BOTH, TRUE);
+	//RECT r;
+	//GetWindowRect(console, &r); //stores the console's current dimensions
+
+	
+	//ShowScrollBar(console, SB_BOTH, FALSE);
+	//SetWindowLong(console, GWL_STYLE, GetWindowLong(console, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
+	
+	MoveWindow(console, 500, 150, 750, 500, TRUE);
+	SetWindowLong(console, GWL_STYLE, GetWindowLong(console, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
 	system("cls"); //clrscr(); //clear the console
 				   //Ascii art reference: http://www.chris.com/ascii/index.php?art=animals/reptiles/snakes
+	ShowConsoleCursor(false);
+	UpdateScroll();
 	printf("\n\n\n");
 	printf("\t    _________         _________ 			\n");
-	printf("\t   /         \\       /         \\ 			\n");
-	printf("\t  /  /~~~~~\\  \\     /  /~~~~~\\  \\ 			\n");
+	printf("\t   /         \\       /         \\ 		\n");
+	printf("\t  /  /~~~~~\\  \\     /  /~~~~~\\  \\ 	\n");
 	printf("\t  |  |     |  |     |  |     |  | 			\n");
 	printf("\t  |  |     |  |     |  |     |  | 			\n");
 	printf("\t  |  |     |  |     |  |     |  |         /	\n");
 	printf("\t  |  |     |  |     |  |     |  |       //	\n");
-	printf("\t (o  o)    \\  \\_____/  /     \\  \\_____/ / 	\n");
+	printf("\t (o  o)    \\  \\_____/  /     \\  \\_____/ / \n");
 	printf("\t  \\__/      \\         /       \\        / 	\n");
 	printf("\t    |        ~~~~~~~~~         ~~~~~~~~ 		\n");
 	printf("\t    ^											\n");
@@ -352,19 +411,21 @@ void ShowMenu() {
 	system("cls");
 	SetConsoleTextAttribute(console, 250);
 	cout << endl;
-	printf("           ---_ ...... _/_ -     \n");
-	printf("          /  . .    ./ .'*\\ \\     \n");
-	printf("          : '_-        /__-'  \\.  \n");
-	printf("         /                      ) \n");
-	printf("       _/                  >   .'  \n");
-	printf("     /   .   .       _.-\" / .'    \n");
-	printf("     \\           __/\" / .'/|    \n");
-	printf("       \\ '--  .-\" /     //' |\\|   \n");
+	printf("           ---_ ...... _/_ - CODER\n");
+	printf("          /  . .    ./ .'*\\ \\     S \n");
+	printf("          : '_-        /__-'  \\.  H  \n");
+	printf("         /                      ) E \n");
+	printf("       _/                  >   .' K  \n");
+	printf("     /   .   .       _.-\" / .'    C  \n");
+	printf("     \\           __/\" / .'/|      O \n");
+	printf("       \\ '--  .-\" /     //' |\\|   N   \n");
 	printf("        \\|  \\ | /     //_ _ |/| \n");
-	printf("         `.  \\:     //|_ _ _|\\| CODER \n");
-	printf("         | \\/.    //  | _ _ |/| SHEKCON \n");
+	printf("         `.  \\:     //|_ _ _|\\|  \n");
+	printf("         | \\/.    //  | _ _ |/|  \n");
 	printf("          \\_ | \\/ /    \\ _ _ \\\\\\  \n");
 	printf("              \\__/      \\ _ _ \\|\\ \n");
+	ShowConsoleCursor(true);
+	
 	ControlMenu();
 }
 
@@ -508,6 +569,7 @@ void ControlMenu() {
 				ControlMenu();
 				break;
 			case 13:
+				ShowConsoleCursor(false);
 				Inital();
 				RunSnack();
 				break;
@@ -517,25 +579,59 @@ void ControlMenu() {
 			}
 		}
 	} while (statusGame);
-	_getch();
+}
+
+void ShowConsoleCursor(bool showFlag)
+{
+	HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	CONSOLE_CURSOR_INFO     cursorInfo;
+
+	GetConsoleCursorInfo(out, &cursorInfo);
+	cursorInfo.bVisible = showFlag; // set the cursor visibility
+	SetConsoleCursorInfo(out, &cursorInfo);
 }
 
 void RunSnack() {
+	//HWND console = GetConsoleWindow();
+	//MoveWindow(console, 500, 150, 750, 800, TRUE);
+	SetWindow(780, 750);
+	ShowConsoleCursor(false);
 	DrawMap();
 	do
 	{
 		Update();
+		ShowLocationS();
+		Sleep(180);
 		InputKey();
 		Logic();
 		//Test();
-		ShowLocationS();
-		Sleep(220);
+		
 	} while (statusGame);
+}
+
+void UpdateScroll() {
+	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+
+	GetConsoleScreenBufferInfo(console, &csbi);
+	COORD scrollbar = {
+		csbi.srWindow.Right - csbi.srWindow.Left + 1,
+		csbi.srWindow.Bottom - csbi.srWindow.Top + 1
+	};
+	SetConsoleScreenBufferSize(console, scrollbar);
+	HWND console2 = GetConsoleWindow();
+}
+
+void SetWindow(int height, int width) {
+	HWND console = GetConsoleWindow();
+	MoveWindow(console, 500, 150, width, height, TRUE);
 }
 
 int main() {
 	ShowMenu();
 	IsDefeat();
+	
 	_getch();
 	return 0;
 }
@@ -574,5 +670,6 @@ void Test() {
 void ShowLocationS() {
 	gotoxy(10, hdefault + height); 
 	cout << hLocatedSnack +1 <<":" << wLocatedSnack +1 <<"    ";
+	gotoxy(0, 0);
 }
 
