@@ -10,9 +10,7 @@ class ClassSnake
 public:
 	ClassSnake(int w,int h);
 	~ClassSnake();
-	bool IsTail(int i);
 	int  TailIs();
-	bool IsHead(int w, int h);
 	bool RunSnake(int w, int h);
 	bool AddTail(int w, int h);
 	bool CheckFood();

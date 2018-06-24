@@ -10,27 +10,10 @@ ClassSnake::~ClassSnake()
 {
 }
 
-bool ClassSnake::IsTail(int i)
-{
-	if (TAIL == i) {
-		return true;
-	}
-	return false;
-}
-
 int ClassSnake::TailIs()
 {
 	
 	return TAIL;
-}
-
-bool ClassSnake::IsHead(int w, int h)
-{
-	if (elementS[HEAD].wL==w &&elementS[HEAD].hL== h)
-	{
-		return true;
-	}
-	return false;
 }
 
 bool ClassSnake::RunSnake(int w, int h)
