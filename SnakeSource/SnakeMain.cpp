@@ -22,11 +22,11 @@ after that show menu again
 #include <time.h>
 #include <cstdlib>
 #include "ClassSnake.h"
-#include <string.h>
+#include <string>
 #include <mmsystem.h>
 #include <thread>
 #pragma comment(lib, "winmm.lib")
-using namespace std;
+//using namespace std;
 enum Direction { STOP, LEFT, RIGHT, UP, DOWN };
 HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE); // For use of SetConsoleTextAttribute()
 #define		wdefault	10
@@ -58,6 +58,13 @@ void ShowConsoleCursor(bool showFlag);
 void SetWindow(int height, int width);
 void UpdateScroll();
 void RunSound();
+void OldOptionMenu(int oldOption);
+void NewOptionMenu(int newOption);
+int ChangeColorMenu(bool Mode, int &where);
+void TestChangeMenu(std::string textOld, std::string textNew, int locationOld, int locationNew, int whereBegin);
+void ChangeSpeed();
+
+
 // define variable type
 struct Location
 {
@@ -67,18 +74,21 @@ struct Location
 
 //define attribute
 int numberSnake = 2;
-bool statusGame = true;
+bool statusGame ;
 const int width = 45;
 const int height = 23;
 int wLocatedSnack, hLocatedSnack, wLocatedFood, hLocatedFood;
-Direction dirSnake = STOP;
-ClassSnake Snake= ClassSnake(width / 2 -1, height / 2-1);
-int ponitOfScore = 0;
-Direction oldDirSnake = STOP;
+Direction dirSnake ;
+ClassSnake Snake= ClassSnake(width / 2 - 1, height / 2 - 1);
+int ponitOfScore;
+Direction oldDirSnake ;
 Location newplace;
 bool IsChangeTail ;
-bool IsRunThread = false;
-
+int speedOfSnake =5;
+const int Speed[11] = { 0,400,350,300,250,210,190,150,110,70,30 };
+int where = 8;
+bool exitGame = false;
+bool reloadMenu;
 /*  x = width : y = height */ 
 void gotoxy(SHORT x,SHORT y )
 {
@@ -90,12 +100,18 @@ void gotoxy(SHORT x,SHORT y )
 }  
 
 void Inital() {
+	 
 	wLocatedSnack = width / 2 -1;
 	hLocatedSnack = height / 2 -1;
 	Snake.AddTail(wLocatedSnack+ 1, hLocatedSnack);
 	Snake.AddTail(wLocatedSnack + 2, hLocatedSnack);
 	Snake.UpdateOldTailS();
 	Snake.isEat = false;
+	Snake.amoutOfFood = 0;
+	dirSnake = STOP;
+	oldDirSnake = STOP;
+	statusGame = true;
+	ponitOfScore = 0;
 	do
 	{
 		srand(static_cast<unsigned int>(time(NULL)));
@@ -109,43 +125,46 @@ void Inital() {
 void DrawMap() {
 	system("cls");
 	
-	gotoxy(wdefault+width/2 -5,2);
+	gotoxy(wdefault+width/2 -20,2);
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 241);
-	cout << "Score:" << ponitOfScore;
+	std::cout << "Score:" << ponitOfScore;
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+	gotoxy(35, 2);
+	std::cout << "Coder by : @Shekcon";
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 1);
-	cout << endl<<endl;
+	std::cout << std::endl<< std::endl;
 	{
 		for (int i = 0; i < width + 2; i++)
 		{
-			if (0 == i) { cout << "\t"; }cout << " ";
+			if (0 == i) { std::cout << "\t"; }std::cout << " ";
 		}
-		cout << endl;
+		std::cout << std::endl;
 		for (int i = 0; i < height; ++i)
 		{
 			for (int j = 0; j < width + 2; ++j)
 			{
 				if (0 == j || (width + 2) - 1 == j)
 				{
-					if (0 == j) cout << "\t";
+					if (0 == j) std::cout << "\t";
 					
 					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 1);
-					cout << " ";
+					std::cout << " ";
 				}
 				else 
 				{ SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240); 
-				cout << " "; 
+				std::cout << " ";
 				}
 
 			}
-			cout << endl;
+			std::cout << std::endl;
 		}
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 1);
 		for (int i = 0; i < width + 2; i++)
 		{
-			if (0 == i) { cout << "\t"; }
+			if (0 == i) { std::cout << "\t"; }
 
-			cout << " ";
+			std::cout << " ";
 		}
 	}
 	int resultTail = Snake.TailIs();  // return id allow know TAIL's location
@@ -156,10 +175,10 @@ void DrawMap() {
 			switch (i)
 			{
 			case 0:
-				cout << ">";
+				std::cout << ">";
 				break;
 			default:
-				cout << "=";
+				std::cout << "=";
 				break;
 			}
 	}
@@ -167,7 +186,7 @@ void DrawMap() {
 	SHORT h = hdefault + hLocatedFood - 1;
 	gotoxy(w, h);
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 241);
-	cout << "@";
+	std::cout << "@";
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
 }
 
@@ -180,33 +199,33 @@ void Update()
 			SHORT w = wdefault + Snake.oldTailLocatedS.wL -1;
 			SHORT h = hdefault + Snake.oldTailLocatedS.hL -1;
 			gotoxy(w, h);
-			cout << " ";
+			std::cout << " ";
 			IsChangeTail = false;
 		}
 		FindWhere(0); // update HEAD   0 access HEAD
 		switch (dirSnake)
 		{
 		case LEFT:
-			cout << ">";
+			std::cout << ">";
 			break;
 
 		case RIGHT:
-			cout << "<";
+			std::cout << "<";
 			break;
 
 		case UP:
-			cout << "v";
+			std::cout << "v";
 			break;
 
 		case DOWN:
-			cout << "^";
+			std::cout << "^";
 			break;
 
 		default:
 			break;
 		}
 		FindWhere(1);// update behind HEAD  1 access element behind HEAD
-		cout << "=";
+		std::cout << "=";
 		gotoxy(0, 0);
 		Sleep(10);
 		
@@ -308,10 +327,6 @@ void Logic() {
 	default:
 		break;
 	}
-	if (IsRunThread)
-	{
-		IsRunThread = false;
-	}
 	if (Snake.IsElementS(wLocatedFood,hLocatedFood))
 	{
 		
@@ -319,9 +334,9 @@ void Logic() {
 		++Snake.amoutOfFood;
 		Snake.isWhere[Snake.amoutOfFood].ID = Snake.TailIs();
 		ponitOfScore += 1;
-		gotoxy(wdefault + width / 2 -5, 2);
+		gotoxy(wdefault + width / 2 -20, 2);
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 241);
-		cout << "Score:" << ponitOfScore;
+		std::cout << "Score:" << ponitOfScore;
 		do
 		{
 			srand(static_cast<unsigned int>(time(NULL)));
@@ -332,7 +347,7 @@ void Logic() {
 		SHORT w = wdefault + wLocatedFood - 1;
 		SHORT h = hdefault + hLocatedFood - 1;
 		gotoxy(w, h);
-		cout << "@";
+		std::cout << "@";
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
 		PlaySound(TEXT("D:\\C++\\SolutionC++\\SnackGame\\NFF-steal-02.wav"), NULL, SND_FILENAME | SND_ASYNC);
 		//PlaySound(TEXT("..\\SnakeSource\\NFF-steal-02.wav"), NULL, SND_FILENAME | SND_ASYNC);
@@ -353,10 +368,10 @@ void IsDefeat() {
 	UpdateScroll();
 	ShowConsoleCursor(false);
 	gotoxy(25, 8);
-	cout << "GAME OVER";
+	std::cout << "GAME OVER";
 	Snake.~ClassSnake();
-	Sleep(500);
-	
+	Snake = ClassSnake(width / 2 - 1, height / 2 - 1);
+	Sleep(900);
 }   
 
 void CheckRules() {
@@ -396,7 +411,7 @@ void ShowMenu() {
 	//ShowScrollBar(console, SB_BOTH, TRUE);
 	//RECT r;
 	//GetWindowRect(console, &r); //stores the console's current dimensions
-
+	statusGame = true;
 	
 	//ShowScrollBar(console, SB_BOTH, FALSE);
 	//SetWindowLong(console, GWL_STYLE, GetWindowLong(console, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
@@ -423,179 +438,337 @@ void ShowMenu() {
 	printf("\t    Press Any Key To Continue...	\n");
 	printf("\n");
 	_getch();
-	system("cls");
-	SetConsoleTextAttribute(console, 250);
-	cout << endl;
-	printf("           ---_ ...... _/_ - CODER\n");
-	printf("          /  . .    ./ .'*\\ \\     S \n");
-	printf("          : '_-        /__-'  \\.  H  \n");
-	printf("         /                      ) E \n");
-	printf("       _/                  >   .' K  \n");
-	printf("     /   .   .       _.-\" / .'    C  \n");
-	printf("     \\           __/\" / .'/|      O \n");
-	printf("       \\ '--  .-\" /     //' |\\|   N   \n");
-	printf("        \\|  \\ | /     //_ _ |/| \n");
-	printf("         `.  \\:     //|_ _ _|\\|  \n");
-	printf("         | \\/.    //  | _ _ |/|  \n");
-	printf("          \\_ | \\/ /    \\ _ _ \\\\\\  \n");
-	printf("              \\__/      \\ _ _ \\|\\ \n");
-	//ShowConsoleCursor(true);
+	
 	
 	ControlMenu();
 }
 
 void ControlMenu() {
-	SetConsoleTextAttribute(console, 251);
-	gotoxy(38, 4);				printf("Snake Game");
-	SetConsoleTextAttribute(console, 241);
-	gotoxy(ARROW,   NEWGAME);	printf("> NEW GAME");
-	SetConsoleTextAttribute(console, 240);
-	gotoxy(ARROW,   HIGHSCORE); printf("  HIGH SCORE");
-	gotoxy(ARROW,   SPEED);     printf("  SPEED");
-	gotoxy(ARROW,   CONTROL);	printf("  CONTROL");
-	gotoxy(ARROW,   EXIT);		printf("  EXIT");
-	gotoxy(PONITER, NEWGAME);
-	SHORT where = 8;
 	do
 	{
-		if(_kbhit())
+		reloadMenu = false;
+		statusGame = true;
+		system("cls");
+		SetConsoleTextAttribute(console, 250);
+		std::cout << std::endl;
+		printf("           ---_ ...... _/_ - CODER\n");
+		printf("          /  . .    ./ .'*\\ \\     S \n");
+		printf("          : '_-        /__-'  \\.  H  \n");
+		printf("         /                      ) E \n");
+		printf("       _/                  >   .' K  \n");
+		printf("     /   .   .       _.-\" / .'    C  \n");
+		printf("     \\           __/\" / .'/|      O \n");
+		printf("       \\ '--  .-\" /     //' |\\|   N   \n");
+		printf("        \\|  \\ | /     //_ _ |/| \n");
+		printf("         `.  \\:     //|_ _ _|\\|  \n");
+		printf("         | \\/.    //  | _ _ |/|  \n");
+		printf("          \\_ | \\/ /    \\ _ _ \\\\\\  \n");
+		printf("              \\__/      \\ _ _ \\|\\ \n");
+		//ShowConsoleCursor(true);
+		SetConsoleTextAttribute(console, 251);
+		gotoxy(38, 4);				printf("Snake Game");
+		SetConsoleTextAttribute(console, 240);
+		gotoxy(ARROW, NEWGAME);	printf("  NEW GAME");
+		gotoxy(ARROW, HIGHSCORE); printf("  HIGH SCORE");
+		gotoxy(ARROW, SPEED);     printf("  SPEED");
+		gotoxy(ARROW, CONTROL);	printf("  CONTROL");
+		gotoxy(ARROW, EXIT);		printf("  EXIT");
+		gotoxy(PONITER, NEWGAME);
+		NewOptionMenu(where);
+		do
+		{
+			if (_kbhit())
+			{
+				switch (_getch())
+				{
+				case 'w':
+
+					ChangeColorMenu(false, where);
+					break;
+				case 's':
+
+					ChangeColorMenu(true, where);
+					break;
+
+				case 'p':
+
+					break;
+				case 27://ESC
+					ControlMenu();
+					break;
+				case 13:
+					switch (where)
+					{
+					case 8:
+						PlaySound(NULL, NULL, 0);
+						//PlaySound(TEXT("D:\\C+\\SolutionC++\\SnackGame\\Nandemonai.wav"), NULL, SND_FILENAME  | SND_ASYNC |SND_NODEFAULT);
+						ShowConsoleCursor(false);
+						Inital();
+						RunSnack();
+						IsDefeat();
+						statusGame = false;
+						reloadMenu = true;
+						break;
+
+					case 9:
+
+
+						break;
+
+					case 10:
+						system("cls");
+						ChangeSpeed();
+						statusGame = false;
+						reloadMenu = true;
+						break;
+
+					case 11:
+
+						break;
+
+					case 12:
+						exitGame = true;
+						break;
+
+					default:
+						break;
+					}
+					break;
+				default:
+					break;
+				}
+			}
+		} while (statusGame && exitGame==false);
+	} while (reloadMenu && exitGame==false);
+	
+}
+
+
+void ChangeSpeed() {
+	SetConsoleTextAttribute(console, 241);
+	gotoxy(25, 3); std::cout << "Speed of Snake:" << speedOfSnake;
+	gotoxy(27, 6); std::cout << "> EXIT";
+	SetConsoleTextAttribute(console, 240);
+	gotoxy(27, 5); std::cout << "  CHANGE";
+	bool Pressed = false;
+	bool isExit = true;
+	do
+	{
+
+		if (_kbhit())
 		{
 			switch (_getch())
 			{
 			case 'w':
-			{
-				if (where == 8)
-				{
-
-					gotoxy(ARROW, NEWGAME); cout << "  NEW GAME";
-					SetConsoleTextAttribute(console, 241);
-					gotoxy(ARROW, EXIT); cout << "> EXIT";
-					gotoxy(PONITER, EXIT);
-					where = 12;
-					SetConsoleTextAttribute(console, 240);
-					break;
+				if (isExit) {
+					TestChangeMenu("EXIT", "CHANGE", 6, 5, 27);
+					isExit = false;
 				}
-				--where;
-
-				if (where == 11)
-				{
-
-					gotoxy(ARROW, EXIT); cout << "  EXIT";
-					SetConsoleTextAttribute(console, 241);
-					gotoxy(ARROW, CONTROL); cout << "> CONTROL";
-					gotoxy(PONITER, CONTROL);
-					SetConsoleTextAttribute(console, 240);
-					break;
+				else {
+					TestChangeMenu("CHANGE", "EXIT", 5, 6, 27);
+					isExit = true;
 				}
-				if (where == 10)
-				{
-
-					gotoxy(ARROW, CONTROL); cout << "  CONTROL";
-					SetConsoleTextAttribute(console, 241);
-					gotoxy(ARROW, SPEED); cout << "> SPEED";
-					gotoxy(PONITER, SPEED);
-					SetConsoleTextAttribute(console, 240);
-					break;
-				}
-				if (where == 9)
-				{
-
-					gotoxy(ARROW, SPEED); cout << "  SPEED";
-					SetConsoleTextAttribute(console, 241);
-					gotoxy(ARROW, HIGHSCORE); cout << "> HIGH SCORE";
-					gotoxy(PONITER, HIGHSCORE);
-					SetConsoleTextAttribute(console, 240);
-					break;
-				}
-				if (where == 8)
-				{
-
-					gotoxy(ARROW, HIGHSCORE); cout << "  HIGH SCORE";
-					SetConsoleTextAttribute(console, 241);
-					gotoxy(ARROW, NEWGAME); cout << "> NEW GAME";
-					gotoxy(PONITER, NEWGAME);
-					SetConsoleTextAttribute(console, 240);
-					break;
-				}
-
-			}
+				break;
 			case 's':
-			{
-				if (where == 12)
-				{
-
-					gotoxy(ARROW, EXIT); cout << "  EXIT";
-					SetConsoleTextAttribute(console, 241);
-					gotoxy(ARROW, NEWGAME); cout << "> NEW GAME";
-					gotoxy(PONITER, NEWGAME);
-					where = 8;
-					SetConsoleTextAttribute(console, 240);
-					break;
+				if (isExit) {
+					TestChangeMenu("EXIT", "CHANGE", 6, 5, 27);
+					isExit = false;
 				}
-				++where;
-
-				if (where == 9)
-				{
-
-					gotoxy(ARROW, NEWGAME); cout << "  NEW GAME";
-					SetConsoleTextAttribute(console, 241);
-					gotoxy(ARROW, HIGHSCORE); cout << "> HIGH SCORE";
-					gotoxy(PONITER, HIGHSCORE);
-					SetConsoleTextAttribute(console, 240);
-					break;
+				else {
+					TestChangeMenu("CHANGE", "EXIT", 5, 6, 27);
+					isExit = true;
 				}
-				if (where == 10)
-				{
-
-					gotoxy(ARROW, HIGHSCORE); cout << "  HIGH SCORE";
-					SetConsoleTextAttribute(console, 241);
-					gotoxy(ARROW, SPEED); cout << "> SPEED";
-					gotoxy(PONITER, SPEED);
-					SetConsoleTextAttribute(console, 240);
-					break;
-				}
-				if (where == 11)
-				{
-
-					gotoxy(ARROW, SPEED); cout << "  SPEED";
-					SetConsoleTextAttribute(console, 241);
-					gotoxy(ARROW, CONTROL); cout << "> CONTROL";
-					gotoxy(PONITER, CONTROL);
-					SetConsoleTextAttribute(console, 240);
-					break;
-				}
-				if (where == 12)
-				{
-
-					gotoxy(ARROW, CONTROL); cout << "  CONTROL";
-					SetConsoleTextAttribute(console, 241);
-					gotoxy(ARROW, EXIT); cout << "> EXIT";
-					gotoxy(PONITER, EXIT);
-					SetConsoleTextAttribute(console, 240);
-					break;
-				}
-				break;
-			}
-
-			case 'p':
-			
-				break;
-			case 27://ESC
-				ControlMenu();
 				break;
 			case 13:
-				PlaySound(NULL, NULL, 0);
-				//PlaySound(TEXT("D:\\C+\\SolutionC++\\SnackGame\\Nandemonai.wav"), NULL, SND_FILENAME  | SND_ASYNC |SND_NODEFAULT);
-				ShowConsoleCursor(false);
-				Inital();
-				RunSnack();
+				if (isExit)
+				{
+					Pressed = true;
+				}
+				else
+				{
+					system("cls");
+					gotoxy(15, 5);
+					std::cout << "Set speed of Snake (1...10): ";
+					std::cin >> speedOfSnake;
+					while (speedOfSnake<1 || speedOfSnake > 10)
+					{
+						
+						gotoxy(15, 5);
+						std::cout<< "Invaild...Please set again:               ";
+						gotoxy(15 + 29, 5);
+						std::cin >> speedOfSnake;
+					}
+					gotoxy(20, 7);
+					SetConsoleTextAttribute(console, 241);
+					std::cout << " CHANGE SUCCESS ";
+					SetConsoleTextAttribute(console, 240);
+					Sleep(800);
+					Pressed = true;
+				}
 				break;
 			default:
-
 				break;
 			}
 		}
-	} while (statusGame);
+	} while (!Pressed);
+}
+	
+
+
+void NewOptionMenu(int newOption) {
+	switch (newOption)
+	{
+	case NEWGAME:
+		SetConsoleTextAttribute(console, 241);
+		gotoxy(ARROW, NEWGAME);			std::cout << "> NEW GAME";
+		SetConsoleTextAttribute(console, 240);
+		break;
+
+	case HIGHSCORE:
+
+		SetConsoleTextAttribute(console, 241);
+		gotoxy(ARROW, HIGHSCORE);		std::cout << "> HIGH SCORE";
+		gotoxy(PONITER, HIGHSCORE);
+		SetConsoleTextAttribute(console, 240);
+		break;
+
+	case SPEED:
+
+		SetConsoleTextAttribute(console, 241);
+		gotoxy(ARROW, SPEED);			std::cout << "> SPEED";
+		gotoxy(PONITER, SPEED);
+		SetConsoleTextAttribute(console, 240);
+		break;
+
+	case CONTROL:
+
+		SetConsoleTextAttribute(console, 241);
+		gotoxy(ARROW, CONTROL);			std::cout << "> CONTROL";
+		gotoxy(PONITER, CONTROL);
+		SetConsoleTextAttribute(console, 240); 
+		break;
+
+	case EXIT:
+
+		SetConsoleTextAttribute(console, 241);
+		gotoxy(ARROW, EXIT);			std::cout << "> EXIT";
+		gotoxy(PONITER, EXIT);
+		SetConsoleTextAttribute(console, 240); 
+		
+		break;
+	default:
+		break;
+	}
+}
+
+void OldOptionMenu(int oldOption) {
+	switch (oldOption)
+	{
+	case NEWGAME:
+		gotoxy(ARROW, NEWGAME);			std::cout << "  NEW GAME";
+		break;
+
+	case HIGHSCORE:
+		gotoxy(ARROW, HIGHSCORE);		std::cout << "  HIGH SCORE";
+		break;
+
+	case SPEED:
+		gotoxy(ARROW, SPEED);			std::cout << "  SPEED";
+		break;
+
+	case CONTROL:
+		gotoxy(ARROW, CONTROL);			std::cout << "  CONTROL";
+		break;
+
+	case EXIT:
+		gotoxy(ARROW, EXIT);			std::cout << "  EXIT";
+		break;
+	default:
+		break;
+	}
+}
+
+void TestChangeMenu(std::string textOld, std::string textNew, int locationOld, int locationNew, int whereBegin) {
+	gotoxy((SHORT)whereBegin, (SHORT)locationOld); std::cout << "  " << textOld;
+	SetConsoleTextAttribute(console, 241);
+	gotoxy((SHORT)whereBegin, (SHORT)locationNew); std::cout << "> " << textNew ;
+	SetConsoleTextAttribute(console, 240);
+}
+
+/*Mode = false : UP   true : DOWN*/
+int ChangeColorMenu(bool Mode, int &where){
+	if (Mode == false) //fas
+	{
+		if (where == 8)
+		{
+			where = 12;
+			OldOptionMenu(NEWGAME);
+			NewOptionMenu(EXIT);
+			return 0;
+		}
+		--where;
+		switch (where)
+		{
+		case 11:
+			OldOptionMenu(EXIT);
+			NewOptionMenu(CONTROL);
+			
+			break;
+		case 10:
+			OldOptionMenu(CONTROL);
+			NewOptionMenu(SPEED);
+			
+			break;
+		case 9:
+			OldOptionMenu(SPEED);
+			NewOptionMenu(HIGHSCORE);
+			break;
+		case 8:
+			OldOptionMenu(HIGHSCORE);
+			NewOptionMenu(NEWGAME);
+			
+			break;
+		default:
+			break;
+		}
+	}
+	if (Mode == true) {
+		if (where == 12)
+		{
+			where = 8;
+			OldOptionMenu(EXIT);
+			NewOptionMenu(NEWGAME);
+			return 0;
+		}
+		++where;
+		switch (where)
+		{
+		case 9:
+			OldOptionMenu(NEWGAME);
+			NewOptionMenu(HIGHSCORE);
+
+			break;
+		case 10:
+			OldOptionMenu(HIGHSCORE);
+			NewOptionMenu(SPEED);
+
+			break;
+		case 11:
+			OldOptionMenu(SPEED);
+			NewOptionMenu(CONTROL);
+
+			break;
+		case 12:
+			OldOptionMenu(CONTROL);
+			NewOptionMenu(EXIT);
+
+			break;
+		default:
+
+			break;
+		}
+	}
+	return 0;
 }
 
 void ShowConsoleCursor(bool showFlag)
@@ -619,7 +792,7 @@ void RunSnack() {
 	{
 		Update();
 		ShowLocationS();
-		Sleep(180);
+		Sleep(Speed[speedOfSnake]);
 		InputKey();
 		Logic();
 		//Test();
@@ -646,41 +819,38 @@ void SetWindow(int height, int width) {
 
 int main() {
 	ShowMenu();
-	IsDefeat();
-	
-	_getch();
 	return 0;
 }
 
 void Test() {
 	gotoxy(2, hdefault + height/2 );
-	cout << "wLocatedSnack < 0 :" << wLocatedSnack;
+	std::cout << "wLocatedSnack < 0 :" << wLocatedSnack;
 	if (wLocatedSnack < 0)
 	{
-		cout << " right";
+		std::cout << " right";
 	}
-	else cout << " wrong";
-	cout << endl;
-	cout << "wLocatedSnack > width-1 :" << wLocatedSnack <<" "<< width -1;
+	else std::cout << " wrong";
+	std::cout << std::endl;
+	std::cout << "wLocatedSnack > width-1 :" << wLocatedSnack <<" "<< width -1;
 	if (wLocatedSnack > width-2)
 	{
-		cout << " right";
+		std::cout << " right";
 	}
-	else cout << " wrong";
-	cout << endl;
-	cout << "hLocatedSnack < 0 :" << hLocatedSnack;
+	else std::cout << " wrong";
+	std::cout << std::endl;
+	std::cout << "hLocatedSnack < 0 :" << hLocatedSnack;
 	if (hLocatedSnack < 0)
 	{
-		cout << " right";
+		std::cout << " right";
 	}
-	else cout << " wrong";
-	cout << endl;
-	cout << "hLocatedSnack > height-1 :" << hLocatedSnack << " " << height - 1;
+	else std::cout << " wrong";
+	std::cout << std::endl;
+	std::cout << "hLocatedSnack > height-1 :" << hLocatedSnack << " " << height - 1;
 	if (hLocatedSnack > height - 1)
 	{
-		cout << " right";
+		std::cout << " right";
 	}
-	else cout << " wrong";
+	else std::cout << " wrong";
 }
 
 void RunSound(){
@@ -689,9 +859,8 @@ void RunSound(){
 
 void ShowLocationS() {
 	gotoxy(10, hdefault + height); 
-	cout << hLocatedSnack +1 <<":" << wLocatedSnack +1 <<"    ";
+	std::cout << hLocatedSnack +1 <<":" << wLocatedSnack +1 <<"    ";
 	gotoxy(0, 0);
-	gotoxy(30, hdefault + height);
-	cout << "Coder by : @Shekcon";
+	
 }
 

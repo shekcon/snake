@@ -8,6 +8,9 @@ ClassSnake::ClassSnake(int w,int h)
 
 ClassSnake::~ClassSnake()
 {
+	TAIL = 0;
+	isEat = false;
+	amoutOfFood = 0;
 }
 
 int ClassSnake::TailIs()

@@ -13,4 +13,7 @@ Menu: like control above
 +In ver 0.3 : remove scrollbar , add title game, add color for map and food ,snake's location when playing , now game can play more easy than previou version.
 
 +In ver 0.4 : add more sound in game but U need find PlaySound in function ShowMenu() and Logic() change link location file.wav to dirct link of this wav in your computer
-         
+ 
++In ver 0.5 : Menu now able to change Speed of snake , Exit game , go back Menu game after you have been died and some bug hidden when playing.Hope u have good time playing it.
+
+
