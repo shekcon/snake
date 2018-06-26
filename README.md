@@ -16,4 +16,6 @@ Menu: like control above
  
 +In ver 0.5 : Menu now able to change Speed of snake , Exit game , go back Menu game after you have been died and some bug hidden when playing.Hope u have good time playing it.
 
++In ver 0.6: Now game almost have completed that u can play, change speed, save setting, save data and have top high score
 
+Only can download here :https://drive.google.com/file/d/13OMj8Mj1ISRjIIhtYXkqDtwulPS6LL_Y/view
