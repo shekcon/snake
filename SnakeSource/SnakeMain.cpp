@@ -21,10 +21,14 @@ after that show menu again
 #include <windows.h>
 #include <time.h>
 #include <cstdlib>
-#include "ClassSnake.h"
 #include <string>
 #include <mmsystem.h>
 #include <thread>
+#include<fstream>
+#include <math.h>
+
+//#include<stdlib.h>
+#include "ClassSnake.h"
 #pragma comment(lib, "winmm.lib")
 //using namespace std;
 enum Direction { STOP, LEFT, RIGHT, UP, DOWN };
@@ -39,6 +43,9 @@ HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE); // For use of SetConsoleTextAt
 #define		ARROW		42
 #define		PONITER		43
 #define		TEXTS		44
+#define		BACKGROUND	1
+#define		EFFECT		2
+#define		NOSOUND		0
 //define function
 void RunSnack();
 void Inital();
@@ -48,24 +55,39 @@ void FindWhere(int i);
 void InputKey();
 void Logic();
 void IsDefeat();
-void ShowMenu();
+void Welcome();
 void CheckRules();
 void gotoxy(SHORT x,SHORT y);
 void Test();
 void ShowLocationS();
-void ControlMenu();
+void Menu();
 void ShowConsoleCursor(bool showFlag);
 void SetWindow(int height, int width);
 void UpdateScroll();
-void RunSound();
+void RunSound(int numberMusic);
 void OldOptionMenu(int oldOption);
 void NewOptionMenu(int newOption);
 int ChangeColorMenu(bool Mode, int &where);
 void TestChangeMenu(std::string textOld, std::string textNew, int locationOld, int locationNew, int whereBegin);
 void ChangeSpeed();
-
-
+void ReadFile();
+int intValue(std::string  s);
+void WriteFileS();
+void FirstRunConfig();
+void UpdateFile(int start,int end);
+void TestSortScore();
+int IsWhereEmpty();
+void IsHighScore(std::string namePlayer, int ponit);
+void ShowHighScore();
 // define variable type
+
+struct WorkFile
+{
+	std::string text;
+	std::string name;
+	std::string numberS;
+	int number;
+};
 struct Location
 {
 	int w;
@@ -73,6 +95,7 @@ struct Location
 };
 
 //define attribute
+WorkFile contextFile[7];
 int numberSnake = 2;
 bool statusGame ;
 const int width = 45;
@@ -84,11 +107,13 @@ int ponitOfScore;
 Direction oldDirSnake ;
 Location newplace;
 bool IsChangeTail ;
-int speedOfSnake =5;
+int speedOfSnake ;
 const int Speed[11] = { 0,400,350,300,250,210,190,150,110,70,30 };
 int where = 8;
 bool exitGame = false;
 bool reloadMenu;
+bool playBack = false;
+std::string isDefaultWork;
 /*  x = width : y = height */ 
 void gotoxy(SHORT x,SHORT y )
 {
@@ -226,6 +251,12 @@ void Update()
 		}
 		FindWhere(1);// update behind HEAD  1 access element behind HEAD
 		std::cout << "=";
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 241);
+		SHORT w = wdefault + wLocatedFood - 1;
+		SHORT h = hdefault + hLocatedFood - 1;
+		gotoxy(w, h);
+		std::cout << "@";
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
 		gotoxy(0, 0);
 		Sleep(10);
 		
@@ -349,8 +380,8 @@ void Logic() {
 		gotoxy(w, h);
 		std::cout << "@";
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
-		PlaySound(TEXT("D:\\C++\\SolutionC++\\SnackGame\\NFF-steal-02.wav"), NULL, SND_FILENAME | SND_ASYNC);
-		//PlaySound(TEXT("..\\SnakeSource\\NFF-steal-02.wav"), NULL, SND_FILENAME | SND_ASYNC);
+		//PlaySound(TEXT("D:\\C++\\SolutionC++\\SnackGame\\NFF-steal-02.wav"), NULL, SND_FILENAME | SND_ASYNC);
+		RunSound(EFFECT);
 		//PlaySound(TEXT("Nandemonai.ogg"), NULL, SND_FILENAME | SND_ASYNC);
 		//SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
 	}
@@ -389,7 +420,7 @@ void CheckRules() {
 }
 
 /*Show menu options for user*/
-void ShowMenu() {
+void Welcome() {
 	
 	/*HANDLE cons = GetStdHandle(STD_OUTPUT_HANDLE);
 	PCONSOLE_FONT_INFOEX font = new CONSOLE_FONT_INFOEX();
@@ -400,22 +431,12 @@ void ShowMenu() {
 	font->FontWeight = 14;
 	font->FontFamily = FF_DECORATIVE;
 	SetCurrentConsoleFontEx(cons, 0, font);*/
-	//PlaySound(TEXT("Nandemonai.ogg"), NULL, SND_FILENAME | SND_SYNC);
-	//PlaySound(TEXT(".\\SnakeSource\\Nandemonai.wav"), NULL, SND_FILENAME | SND_LOOP | SND_ASYNC);
-	sndPlaySound(TEXT("D:\\C++\\SolutionC++\\SnackGame\\Nandemonai.wav"), SND_FILENAME | SND_LOOP | SND_ASYNC);
-	//ShowConsoleCursor(false);
+	//ReadFile();
+	RunSound(BACKGROUND);
 	SetConsoleTitle(TEXT("Snake @Shekcon"));
 	SetConsoleTextAttribute(console, 241);
-	/*UpdateScroll();*/
 	HWND console = GetConsoleWindow();
-	//ShowScrollBar(console, SB_BOTH, TRUE);
-	//RECT r;
-	//GetWindowRect(console, &r); //stores the console's current dimensions
 	statusGame = true;
-	
-	//ShowScrollBar(console, SB_BOTH, FALSE);
-	//SetWindowLong(console, GWL_STYLE, GetWindowLong(console, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
-	
 	MoveWindow(console, 500, 150, 750, 500, TRUE);
 	SetWindowLong(console, GWL_STYLE, GetWindowLong(console, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
 	system("cls"); //clrscr(); //clear the console
@@ -435,17 +456,21 @@ void ShowMenu() {
 	printf("\t    |        ~~~~~~~~~         ~~~~~~~~ 		\n");
 	printf("\t    ^											\n");
 	printf("\t    Welcome To The Snake Game!			\n");
-	printf("\t    Press Any Key To Continue...	\n");
+	printf("\t             Loading...	\n");
 	printf("\n");
-	_getch();
 	
 	
-	ControlMenu();
 }
 
-void ControlMenu() {
+void Menu() {
 	do
 	{
+		ShowConsoleCursor(false);
+		if (playBack)
+		{
+			RunSound(BACKGROUND);
+			playBack = false;
+		}
 		reloadMenu = false;
 		statusGame = true;
 		system("cls");
@@ -475,6 +500,7 @@ void ControlMenu() {
 		gotoxy(ARROW, EXIT);		printf("  EXIT");
 		gotoxy(PONITER, NEWGAME);
 		NewOptionMenu(where);
+		ShowConsoleCursor(false);
 		do
 		{
 			if (_kbhit())
@@ -484,67 +510,83 @@ void ControlMenu() {
 				case 'w':
 
 					ChangeColorMenu(false, where);
+					ShowConsoleCursor(false);
 					break;
 				case 's':
 
 					ChangeColorMenu(true, where);
+					ShowConsoleCursor(false);
 					break;
 
 				case 'p':
 
 					break;
 				case 27://ESC
-					ControlMenu();
+				{
+					int resultEsc = MessageBox(NULL, TEXT("Do you close?"), TEXT("Comfirm"), MB_OKCANCEL);
+					if (resultEsc == 1) {
+						exitGame = true;
+					}
 					break;
+				}
 				case 13:
 					switch (where)
 					{
-					case 8:
-						PlaySound(NULL, NULL, 0);
-						//PlaySound(TEXT("D:\\C+\\SolutionC++\\SnackGame\\Nandemonai.wav"), NULL, SND_FILENAME  | SND_ASYNC |SND_NODEFAULT);
+					case 8: //NEW GAME
+						RunSound(NOSOUND);
 						ShowConsoleCursor(false);
 						Inital();
 						RunSnack();
 						IsDefeat();
+						TestSortScore();
+						ShowHighScore();
+						Sleep(2000);
+						statusGame = false;
+						reloadMenu = true;
+						playBack = true;
+						break;
+
+					case 9://HIGH SCORE
+						ShowHighScore();
+						Sleep(2000);
 						statusGame = false;
 						reloadMenu = true;
 						break;
 
-					case 9:
-
-
-						break;
-
-					case 10:
+					case 10://SPEED
 						system("cls");
 						ChangeSpeed();
 						statusGame = false;
 						reloadMenu = true;
 						break;
 
-					case 11:
+					case 11://CONTROL
 
 						break;
 
-					case 12:
-						exitGame = true;
+					case 12://EXIT
+					{
+						int result = MessageBox(NULL, TEXT("Do you close?"), TEXT("Comfirm"), MB_OKCANCEL);
+						if (result == 1) {
+							exitGame = true;
+						}
 						break;
-
+					}
 					default:
 						break;
 					}
 					break;
 				default:
+					ShowConsoleCursor(false);
 					break;
 				}
 			}
-		} while (statusGame && exitGame==false);
-	} while (reloadMenu && exitGame==false);
-	
+		} while (statusGame && exitGame == false);
+
+	} while (reloadMenu && exitGame == false);
 }
 
-
-void ChangeSpeed() {
+void ChangeSpeed(){
 	SetConsoleTextAttribute(console, 241);
 	gotoxy(25, 3); std::cout << "Speed of Snake:" << speedOfSnake;
 	gotoxy(27, 6); std::cout << "> EXIT";
@@ -606,15 +648,12 @@ void ChangeSpeed() {
 					Pressed = true;
 				}
 				break;
-			default:
-				break;
+			
 			}
 		}
 	} while (!Pressed);
-}
+}					 
 	
-
-
 void NewOptionMenu(int newOption) {
 	switch (newOption)
 	{
@@ -818,7 +857,16 @@ void SetWindow(int height, int width) {
 }
 
 int main() {
-	ShowMenu();
+	Welcome();
+	ReadFile();
+	if (isDefaultWork[0]!='T')
+	{
+		FirstRunConfig();
+		ReadFile();
+	}
+	Sleep(500);
+	Menu();
+	WriteFileS();
 	return 0;
 }
 
@@ -853,8 +901,31 @@ void Test() {
 	else std::cout << " wrong";
 }
 
-void RunSound(){
-	PlaySound(TEXT("NFF-steal-02.wav"), NULL, SND_SYNC);
+/* 
+ 0: dont have sound
+   1: background music
+   2: effect sound
+*/
+void RunSound(int numberMusic){
+	
+	switch (numberMusic)
+	{
+	case 0:
+		PlaySound(NULL, 0, 0);
+		break;
+
+	case 1:
+		sndPlaySound(MAKEINTRESOURCE(106), SND_RESOURCE | SND_LOOP | SND_ASYNC);
+		break;
+
+	case 2:
+		sndPlaySound(MAKEINTRESOURCE(105), SND_RESOURCE | SND_ASYNC);
+		break;
+	default:
+
+		break;
+	}
+	
 }
 
 void ShowLocationS() {
@@ -864,3 +935,235 @@ void ShowLocationS() {
 	
 }
 
+
+void ReadFile() 
+{
+	std::ifstream File("config.ino");
+	//std::string buffer_string;
+	int i = -1;
+	if (!File.is_open())
+	{
+		//MessageBox(NULL, TEXT("Can't open loading infomation"), TEXT("Error"), MB_OK);
+		isDefaultWork[0] = 'F';
+	}
+	else {
+		
+		while (File.good())
+		{
+			if (-1 == i) { std::getline(File, isDefaultWork); 
+			if (isDefaultWork[0] != 'T') { i = -1; break; }
+			}
+			else std::getline(File, contextFile[i].text);
+			++i;
+		}
+		int size_speed = contextFile[0].text.size();
+		switch (size_speed)
+		{
+		case 1:
+			if (contextFile[0].text[0]<'0' || contextFile[0].text[0]>'9')
+			{
+				isDefaultWork[0] = 'F';
+				i = -1;
+			}
+			break;
+		case 2:
+			if (contextFile[0].text[0]<'0' || contextFile[0].text[0]>'9' && contextFile[0].text[1] != '0')
+			{
+				isDefaultWork[0] = 'F';
+				i = -1;
+			}
+			break;
+
+		default:
+			isDefaultWork[0] = 'F';
+			i = -1;
+			break;
+
+		}
+		if (i!=-1)
+		{
+			speedOfSnake = intValue(contextFile[0].text);
+			for (int i = 1; i < 6; ++i)
+			{
+				int search = contextFile[i].text.find(":");
+				for (int j = search + 1; j != contextFile[i].text.size(); ++j)
+				{
+					contextFile[i].numberS += contextFile[i].text[j];
+				}
+				contextFile[i].number = intValue(contextFile[i].numberS);
+				for (int j = 0; j < search; ++j)
+				{
+					contextFile[i].name += contextFile[i].text[j];
+				}
+			}
+			/*std::cout << speedOfSnake << std::endl;
+			for (int i = 1; i < 6; ++i)
+			{
+				std::cout << i << "\t" << contextFile[i].name << "\t\t" << contextFile[i].numberS << std::endl;
+			}*/
+		}
+		else isDefaultWork[0] = 'F';
+		
+		
+		
+	}
+}
+
+void WriteFileS() {
+	std::fstream File;
+	File.open("config.ino", std::ios::out);
+	//std::string buffer_string;
+	int i = 0;
+	if (!File.is_open())
+	{
+		MessageBox(NULL, TEXT("Can't loading data"), TEXT("Error"), MB_OK);
+		
+	}
+	else {
+
+		std::string speedS= std::to_string(speedOfSnake);
+		File << isDefaultWork[0] << std::endl;
+		File << speedS << std::endl;
+		
+		
+		contextFile[1].text = contextFile[1].name + ":" + contextFile[1].numberS;
+		contextFile[2].text = contextFile[2].name + ":" + contextFile[2].numberS;
+		contextFile[3].text = contextFile[3].name + ":" + contextFile[3].numberS;
+		contextFile[4].text = contextFile[4].name + ":" + contextFile[4].numberS;
+		contextFile[5].text;
+		for (int i = 1; i < 6; i++)
+		{
+			File << contextFile[i].text << std::endl;
+		}
+		File.close();	
+		
+		
+	}
+}
+
+void FirstRunConfig(){
+	remove("config.ino");
+	FILE * createFile;
+	size_t err= fopen_s(&createFile,"config.ino","a+");
+	if(!(err==0)){
+		MessageBox(NULL,TEXT("Can't loading data"),TEXT("Error"),MB_OK);
+	}
+	else {
+		//fputc('T', createFile);
+		fclose(createFile);
+		//notice have write default info into file
+	}
+	for (int x = 1; x < 6; ++x)
+	{
+		contextFile[x].text = "";
+	}
+	std::fstream importFile("config.ino");
+	if (!importFile.is_open()) {
+		MessageBox(NULL, TEXT("Can't loading data"), TEXT("Error"), MB_OK);
+		
+	}
+	else {
+		std::string mode = "T";
+		importFile << mode << std::endl;
+		int defaultSpeed = 5;
+		speedOfSnake = 5;
+		std::string speed = std::to_string(defaultSpeed);
+		importFile << speed << std::endl;
+		std::string defaultGame = " :empty";
+		
+		for (int i = 1; i < 6; ++i)
+		{
+
+			importFile << defaultGame << std::endl;
+		}
+		importFile.close();
+
+	}
+
+}
+
+int intValue(std::string  s) {
+	int res = 0;
+
+	for (int i = 0; i != s.size(); ++i) 
+		res = res * 10 + (s[i]-'0');
+	return res;
+}
+
+void IsHighScore(std::string namePlayer,int ponit) {
+	contextFile[6].name = namePlayer;
+	contextFile[6].number = ponit;
+	bool isUpdate = false;
+	int whereIsEmpty = IsWhereEmpty();
+	for (int i = 1; i < whereIsEmpty; i++)
+	{
+		if (ponit > contextFile[i].number) {
+			isUpdate = true;
+			UpdateFile(whereIsEmpty , i); // coz where update behind where empty - 1;
+			break;
+		}
+	}
+	if (!isUpdate)
+	{
+		if (whereIsEmpty<=5)
+		{
+			contextFile[whereIsEmpty].name = contextFile[6].name;
+			contextFile[whereIsEmpty].number = contextFile[6].number;
+			contextFile[whereIsEmpty].numberS = std::to_string(contextFile[whereIsEmpty].number);
+			contextFile[whereIsEmpty].text = contextFile[whereIsEmpty].name + ":" + contextFile[whereIsEmpty].numberS;
+		}
+	}
+}
+
+int IsWhereEmpty(){
+	for (int i = 1; i < 6 ; ++i)
+	{
+		if (contextFile[i].numberS=="empty")
+		{
+			return i;
+		}
+	}
+	return 6;
+}
+
+/*start: begin location - 1 numberS = "empty"
+end : where high score write into it*/
+void UpdateFile(int start,int end){
+	if (start == 6) start = 5;
+	for(int j=start;j>end;--j){
+		contextFile[j].name = contextFile[j-1].name;
+		contextFile[j].number = contextFile[j-1].number;
+		contextFile[j].numberS = std::to_string(contextFile[j].number);
+		contextFile[j].text = contextFile[j].name + ":" + contextFile[j].numberS;
+	}
+	contextFile[end].name = contextFile[6].name;
+	contextFile[end].number = contextFile[6].number;
+	contextFile[end].numberS = std::to_string(contextFile[end].number);
+	contextFile[end].text = contextFile[end].name + ":" + contextFile[end].numberS;
+}
+
+void TestSortScore(){
+	system("cls");
+	std::string test;
+	gotoxy(13, 6);
+	std::cout << "what's your name? :";
+	std::cin >> test;
+	IsHighScore(test, ponitOfScore);
+}
+
+void ShowHighScore() {
+	system("cls");
+	SetConsoleTextAttribute(console, 241);
+	gotoxy(12, 3); std::cout << "Name";
+	gotoxy(30, 3); std::cout << "Score";
+	SetConsoleTextAttribute(console, 240);
+	for (int y = 1; y < 6; ++y)
+	{
+		gotoxy(8, 3+y); std::cout << y << ".";
+		gotoxy(11, 3 + y);
+		std::cout << contextFile[y].name;
+		gotoxy(30, 3 + y); std::cout << contextFile[y].numberS;
+	}
+
+
+}

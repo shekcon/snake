@@ -149,8 +149,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClassSnake.h" />
-    <ClInclude Include="new.h" />
-    <ClInclude Include="Snake.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SnakeSource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="wave2.bin" />
+    <None Include="wave3.bin" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="..\Nandemonai.wav" />
+    <Media Include="..\NFF-steal-02.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

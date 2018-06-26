@@ -15,14 +15,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Snake.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="ClassSnake.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="new.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -32,5 +29,26 @@
     <ClCompile Include="ClassSnake.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SnakeSource.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="wave3.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="wave2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="..\NFF-steal-02.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
+    <Media Include="..\Nandemonai.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
   </ItemGroup>
 </Project>
