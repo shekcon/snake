@@ -489,6 +489,9 @@ void Menu() {
 		printf("         | \\/.    //  | _ _ |/|  \n");
 		printf("          \\_ | \\/ /    \\ _ _ \\\\\\  \n");
 		printf("              \\__/      \\ _ _ \\|\\ \n");
+		printf("\n\n");
+		printf("                     W               \n");
+		printf("         Control   A S D ");
 		//ShowConsoleCursor(true);
 		SetConsoleTextAttribute(console, 251);
 		gotoxy(38, 4);				printf("Snake Game");
@@ -653,7 +656,11 @@ void ChangeSpeed(){
 		}
 	} while (!Pressed);
 }					 
-	
+
+void ChangeControl() {
+
+}
+
 void NewOptionMenu(int newOption) {
 	switch (newOption)
 	{
