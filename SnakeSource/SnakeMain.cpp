@@ -26,15 +26,15 @@ after that show menu again
 #include <thread>
 #include<fstream>
 #include <math.h>
-
-//#include<stdlib.h>
+#include "resource.h"
+#include<stdlib.h>
 #include "ClassSnake.h"
 #pragma comment(lib, "winmm.lib")
 //using namespace std;
 enum Direction { STOP, LEFT, RIGHT, UP, DOWN };
 HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE); // For use of SetConsoleTextAttribute()
-#define		WDEFAULT	10
-#define		HDEFAULT	6
+#define		WDEFAULT	10   // distance of height until draw map
+#define		HDEFAULT	6	 // distance of width  until draw map
 #define		NEWGAME		8
 #define		HIGHSCORE	9
 #define		SPEED		10
@@ -75,11 +75,11 @@ int  ChangeColorMenu(bool Mode, int &where);
 void TestChangeMenu(std::string textOld, std::string textNew, int locationOld, int locationNew, int whereBegin);
 void ChangeSpeed();
 void ReadFile();
-int  intValue(std::string  s);
+int  ConvertToInt(std::string  s);
 void WriteFileS();
 void FirstRunConfig();
 void UpdateFile(int start,int end);
-void TestSortScore();
+void SortHighScore();
 int  IsWhereEmpty();
 void IsHighScore(std::string namePlayer, int ponit);
 void ShowHighScore();
@@ -559,7 +559,7 @@ void Menu() {
 						Inital();
 						RunSnack();
 						IsDefeat();
-						TestSortScore();
+						SortHighScore();
 						ShowHighScore();
 						Sleep(2000);
 						statusGame = false;
@@ -882,6 +882,7 @@ void SetWindow(int height, int width) {
 }
 
 int main() {
+	
 	Welcome();
 	ReadFile();
 	if (isDefaultWork[0]!='T')
@@ -940,11 +941,11 @@ void RunSound(int numberMusic){
 		break;
 
 	case 1:
-		sndPlaySound(MAKEINTRESOURCE(106), SND_RESOURCE | SND_LOOP | SND_ASYNC);
+		sndPlaySound(MAKEINTRESOURCE(IDR_WAVE3), SND_RESOURCE | SND_LOOP | SND_ASYNC);
 		break;
 
 	case 2:
-		sndPlaySound(MAKEINTRESOURCE(105), SND_RESOURCE | SND_ASYNC);
+		sndPlaySound(MAKEINTRESOURCE(IDR_WAVE2), SND_RESOURCE | SND_ASYNC);
 		break;
 	default:
 
@@ -956,10 +957,7 @@ void RunSound(int numberMusic){
 void ShowLocationS() {
 	gotoxy(10, HDEFAULT + height); 
 	std::cout << hLocatedSnack +1 <<":" << wLocatedSnack +1 <<"    ";
-	gotoxy(0, 0);
-	
 }
-
 
 void ReadFile() 
 {
@@ -981,33 +979,39 @@ void ReadFile()
 			else std::getline(File, contextFile[i].text);
 			++i;
 		}
-		int size_speed = contextFile[0].text.size();
-		switch (size_speed)
+		int check_size = contextFile[0].text.size();
+		switch (check_size)
 		{
-		case 1:
-			if (contextFile[0].text[0]<'0' || contextFile[0].text[0]>'9')
-			{
-				isDefaultWork[0] = 'F';
-				i = -1;
-			}
-			break;
-		case 2:
-			if (contextFile[0].text[0]<'0' || contextFile[0].text[0]>'9' && contextFile[0].text[1] != '0')
-			{
-				isDefaultWork[0] = 'F';
-				i = -1;
-			}
-			break;
+			case 1:
+				if (contextFile[0].text[0]<'0' || contextFile[0].text[0]>'9')
+				{
+					isDefaultWork[0] = 'F';
+					i = -1;
+				}
+				break;
+			case 2:
+				if (contextFile[0].text[0]<'0' || contextFile[0].text[0]>'9' && contextFile[0].text[1] != '0')
+				{
+					isDefaultWork[0] = 'F';
+					i = -1;
+				}
+				break;
 
-		default:
-			isDefaultWork[0] = 'F';
-			i = -1;
-			break;
-
+			default: 
+				{
+					isDefaultWork[0] = 'F';
+					i = -1;
+				}
+				break;
+		
 		}
+		// maybe u want not error when covert string numberS >> int number
+		// create function check ascii if element of numberS is number or not
+		// if not ,this mean someone change it
+		// run config again avoid sort high score wrong or change it empty
 		if (i!=-1)
 		{
-			speedOfSnake = intValue(contextFile[0].text);
+			speedOfSnake = ConvertToInt(contextFile[0].text);
 			for (int i = 1; i < 6; ++i)
 			{
 				int search = contextFile[i].text.find(":");
@@ -1015,22 +1019,14 @@ void ReadFile()
 				{
 					contextFile[i].numberS += contextFile[i].text[j];
 				}
-				contextFile[i].number = intValue(contextFile[i].numberS);
+				contextFile[i].number = ConvertToInt(contextFile[i].numberS);
 				for (int j = 0; j < search; ++j)
 				{
 					contextFile[i].name += contextFile[i].text[j];
 				}
 			}
-			/*std::cout << speedOfSnake << std::endl;
-			for (int i = 1; i < 6; ++i)
-			{
-				std::cout << i << "\t" << contextFile[i].name << "\t\t" << contextFile[i].numberS << std::endl;
-			}*/
 		}
 		else isDefaultWork[0] = 'F';
-		
-		
-		
 	}
 }
 
@@ -1041,28 +1037,18 @@ void WriteFileS() {
 	int i = 0;
 	if (!File.is_open())
 	{
-		MessageBox(NULL, TEXT("Can't loading data"), TEXT("Error"), MB_OK);
-		
+		//MessageBox(NULL, TEXT("Can't loading data"), TEXT("Error"), MB_OK);
 	}
 	else {
 
 		std::string speedS= std::to_string(speedOfSnake);
 		File << isDefaultWork[0] << std::endl;
 		File << speedS << std::endl;
-		
-		
-		contextFile[1].text = contextFile[1].name + ":" + contextFile[1].numberS;
-		contextFile[2].text = contextFile[2].name + ":" + contextFile[2].numberS;
-		contextFile[3].text = contextFile[3].name + ":" + contextFile[3].numberS;
-		contextFile[4].text = contextFile[4].name + ":" + contextFile[4].numberS;
-		contextFile[5].text;
 		for (int i = 1; i < 6; i++)
 		{
 			File << contextFile[i].text << std::endl;
 		}
-		File.close();	
-		
-		
+		File.close();		
 	}
 }
 
@@ -1107,7 +1093,7 @@ void FirstRunConfig(){
 
 }
 
-int intValue(std::string  s) {
+int ConvertToInt(std::string  s) {
 	int res = 0;
 
 	for (int i = 0; i != s.size(); ++i) 
@@ -1156,18 +1142,18 @@ end : where high score write into it*/
 void UpdateFile(int start,int end){
 	if (start == 6) start = 5;
 	for(int j=start;j>end;--j){
-		contextFile[j].name = contextFile[j-1].name;
-		contextFile[j].number = contextFile[j-1].number;
-		contextFile[j].numberS = std::to_string(contextFile[j].number);
-		contextFile[j].text = contextFile[j].name + ":" + contextFile[j].numberS;
+		contextFile[j].name		= contextFile[j-1].name;
+		contextFile[j].number	= contextFile[j-1].number;
+		contextFile[j].numberS	= std::to_string(contextFile[j].number);
+		contextFile[j].text		= contextFile[j].name + ":" + contextFile[j].numberS;
 	}
-	contextFile[end].name = contextFile[6].name;
-	contextFile[end].number = contextFile[6].number;
-	contextFile[end].numberS = std::to_string(contextFile[end].number);
-	contextFile[end].text = contextFile[end].name + ":" + contextFile[end].numberS;
+	contextFile[end].name		= contextFile[6].name;
+	contextFile[end].number		= contextFile[6].number;
+	contextFile[end].numberS	= std::to_string(contextFile[end].number);
+	contextFile[end].text		= contextFile[end].name + ":" + contextFile[end].numberS;
 }
 
-void TestSortScore(){
+void SortHighScore(){
 	system("cls");
 	std::string test;
 	gotoxy(13, 6);
@@ -1179,16 +1165,13 @@ void TestSortScore(){
 void ShowHighScore() {
 	system("cls");
 	SetConsoleTextAttribute(console, 241);
-	gotoxy(12, 3); std::cout << "Name";
-	gotoxy(30, 3); std::cout << "Score";
+	gotoxy(12, 3);			std::cout << "Name";
+	gotoxy(30, 3);			std::cout << "Score";
 	SetConsoleTextAttribute(console, 240);
 	for (int y = 1; y < 6; ++y)
 	{
-		gotoxy(8, 3+y); std::cout << y << ".";
-		gotoxy(11, 3 + y);
-		std::cout << contextFile[y].name;
-		gotoxy(30, 3 + y); std::cout << contextFile[y].numberS;
+		gotoxy(8, 3+y);		std::cout << y << ".";
+		gotoxy(11, 3 + y);	std::cout << contextFile[y].name;
+		gotoxy(30, 3 + y);	std::cout << contextFile[y].numberS;
 	}
-
-
 }
