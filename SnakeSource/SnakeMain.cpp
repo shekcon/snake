@@ -78,11 +78,12 @@ void ReadFile();
 int  ConvertToInt(std::string  s);
 void WriteFileS();
 void FirstRunConfig();
-void UpdateFile(int start,int end);
-void SortHighScore();
+void UpdateHighScore(int start,int end);
 int  IsWhereEmpty();
-void IsHighScore(std::string namePlayer, int ponit);
+void IsHighScore();
 void ShowHighScore();
+std::string GetNamePlayer();
+void WaitAfterPlaying();
 // define variable type
 
 struct WorkFile
@@ -554,17 +555,19 @@ void Menu() {
 					switch (where)
 					{
 					case 8: //NEW GAME
+					{
 						RunSound(NOSOUND);
 						ShowConsoleCursor(false);
 						Inital();
 						RunSnack();
 						IsDefeat();
-						SortHighScore();
+						IsHighScore();
 						ShowHighScore();
-						Sleep(2000);
+						WaitAfterPlaying();
 						statusGame = false;
 						reloadMenu = true;
 						playBack = true;
+					}
 						break;
 
 					case 9://HIGH SCORE
@@ -677,6 +680,29 @@ void ChangeSpeed(){
 
 void ChangeControl() {
 
+}
+
+void WaitAfterPlaying(){
+	int i = 0;
+	gotoxy(10, 12); std::cout << " Press anything to contiue";
+	gotoxy(35, 18); std::cout << "5 seconds go back Menu";
+	do
+	{
+
+		Sleep(10);
+		++i;
+		if (_kbhit())
+		{
+			_getch();
+			break;
+		}
+		else if (500 == i) break;
+		if (i % 10 == 0 && i != 0)
+		{
+			gotoxy(35, 18);
+			std::cout << 5 - (i / 100);
+		}
+	} while (true);
 }
 
 void NewOptionMenu(int newOption) {
@@ -890,7 +916,18 @@ int main() {
 		FirstRunConfig();
 		ReadFile();
 	}
-	Sleep(500);
+	int x = 0;
+	do
+	{
+		Sleep(10);
+		++x;
+		if (_kbhit())
+		{
+			_getch();
+			break;
+		}
+		else if (x == 200) break;
+	} while (true);
 	Menu();
 	WriteFileS();
 	return 0;
@@ -1074,19 +1111,11 @@ void FirstRunConfig(){
 		
 	}
 	else {
-		std::string mode = "T";
-		importFile << mode << std::endl;
-		int defaultSpeed = 5;
-		speedOfSnake = 5;
-		std::string speed = std::to_string(defaultSpeed);
+		importFile << "T" << std::endl;
+		std::string speed = std::to_string(5);
 		importFile << speed << std::endl;
 		std::string defaultGame = " :empty";
-		
-		for (int i = 1; i < 6; ++i)
-		{
-
-			importFile << defaultGame << std::endl;
-		}
+		for (int i = 1; i < 6; ++i) importFile << defaultGame << std::endl;
 		importFile.close();
 
 	}
@@ -1101,16 +1130,14 @@ int ConvertToInt(std::string  s) {
 	return res;
 }
 
-void IsHighScore(std::string namePlayer,int ponit) {
-	contextFile[6].name = namePlayer;
-	contextFile[6].number = ponit;
+void IsHighScore() {
 	bool isUpdate = false;
 	int whereIsEmpty = IsWhereEmpty();
 	for (int i = 1; i < whereIsEmpty; i++)
 	{
-		if (ponit > contextFile[i].number) {
+		if (ponitOfScore > contextFile[i].number) {
 			isUpdate = true;
-			UpdateFile(whereIsEmpty , i); // coz where update behind where empty - 1;
+			UpdateHighScore(whereIsEmpty , i); //coz update behind where empty-1 to i-1 and set i = new ponit
 			break;
 		}
 	}
@@ -1118,13 +1145,31 @@ void IsHighScore(std::string namePlayer,int ponit) {
 	{
 		if (whereIsEmpty<=5)
 		{
-			contextFile[whereIsEmpty].name = contextFile[6].name;
-			contextFile[whereIsEmpty].number = contextFile[6].number;
+			
+			contextFile[whereIsEmpty].name = GetNamePlayer();
+			contextFile[whereIsEmpty].number = ponitOfScore;
 			contextFile[whereIsEmpty].numberS = std::to_string(contextFile[whereIsEmpty].number);
 			contextFile[whereIsEmpty].text = contextFile[whereIsEmpty].name + ":" + contextFile[whereIsEmpty].numberS;
 		}
 	}
 }
+
+
+std::string GetNamePlayer(){
+	system("cls");
+	std::string namePlayer;
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 241);
+	gotoxy(15, 5);	std::cout << " You get high ponit ! ^-^";
+	gotoxy(10, 8);  std::cout << " Name's player (Press enter to ignore): ";
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
+	std::getline(std::cin, namePlayer);
+	if (namePlayer[0]==NULL)
+	{
+		return "Unknown";
+	}
+	return namePlayer;
+}
+
 
 int IsWhereEmpty(){
 	for (int i = 1; i < 6 ; ++i)
@@ -1139,28 +1184,22 @@ int IsWhereEmpty(){
 
 /*start: begin location - 1 numberS = "empty"
 end : where high score write into it*/
-void UpdateFile(int start,int end){
+void UpdateHighScore(int start,int end){
 	if (start == 6) start = 5;
-	for(int j=start;j>end;--j){
-		contextFile[j].name		= contextFile[j-1].name;
-		contextFile[j].number	= contextFile[j-1].number;
+	
+	for (int j = start; j > end; --j) {
+		contextFile[j].name		= contextFile[j - 1].name;
+		contextFile[j].number	= contextFile[j - 1].number;
 		contextFile[j].numberS	= std::to_string(contextFile[j].number);
 		contextFile[j].text		= contextFile[j].name + ":" + contextFile[j].numberS;
 	}
-	contextFile[end].name		= contextFile[6].name;
-	contextFile[end].number		= contextFile[6].number;
+	contextFile[end].name		= GetNamePlayer();
+	contextFile[end].number		= ponitOfScore;
 	contextFile[end].numberS	= std::to_string(contextFile[end].number);
 	contextFile[end].text		= contextFile[end].name + ":" + contextFile[end].numberS;
+	
 }
 
-void SortHighScore(){
-	system("cls");
-	std::string test;
-	gotoxy(13, 6);
-	std::cout << "what's your name? :";
-	std::cin >> test;
-	IsHighScore(test, ponitOfScore);
-}
 
 void ShowHighScore() {
 	system("cls");
