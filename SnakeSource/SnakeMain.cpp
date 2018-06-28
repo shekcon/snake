@@ -33,8 +33,8 @@ after that show menu again
 //using namespace std;
 enum Direction { STOP, LEFT, RIGHT, UP, DOWN };
 HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE); // For use of SetConsoleTextAttribute()
-#define		wdefault	10
-#define		hdefault	6
+#define		WDEFAULT	10
+#define		HDEFAULT	6
 #define		NEWGAME		8
 #define		HIGHSCORE	9
 #define		SPEED		10
@@ -46,6 +46,10 @@ HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE); // For use of SetConsoleTextAt
 #define		BACKGROUND	1
 #define		EFFECT		2
 #define		NOSOUND		0
+#define		UP_ARROW	72
+#define		LEFT_ARROW	75
+#define		RIGHT_ARROW 77
+#define		DOWN_ARROW	80
 //define function
 void RunSnack();
 void Inital();
@@ -67,16 +71,16 @@ void UpdateScroll();
 void RunSound(int numberMusic);
 void OldOptionMenu(int oldOption);
 void NewOptionMenu(int newOption);
-int ChangeColorMenu(bool Mode, int &where);
+int  ChangeColorMenu(bool Mode, int &where);
 void TestChangeMenu(std::string textOld, std::string textNew, int locationOld, int locationNew, int whereBegin);
 void ChangeSpeed();
 void ReadFile();
-int intValue(std::string  s);
+int  intValue(std::string  s);
 void WriteFileS();
 void FirstRunConfig();
 void UpdateFile(int start,int end);
 void TestSortScore();
-int IsWhereEmpty();
+int  IsWhereEmpty();
 void IsHighScore(std::string namePlayer, int ponit);
 void ShowHighScore();
 // define variable type
@@ -150,12 +154,12 @@ void Inital() {
 void DrawMap() {
 	system("cls");
 	
-	gotoxy(wdefault+width/2 -20,2);
+	gotoxy(WDEFAULT+width/2 -20,2);
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 241);
 	std::cout << "Score:" << ponitOfScore;
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
-	gotoxy(35, 2);
-	std::cout << "Coder by : @Shekcon";
+	gotoxy(40, 2);
+	std::cout << "Coder : @Shekcon";
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 1);
 	std::cout << std::endl<< std::endl;
@@ -192,8 +196,13 @@ void DrawMap() {
 			std::cout << " ";
 		}
 	}
-	int resultTail = Snake.TailIs();  // return id allow know TAIL's location
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 243);
+	gotoxy(WDEFAULT+width+2, HDEFAULT + 2); std::cout << "Control";
+	gotoxy(WDEFAULT + width + 5, HDEFAULT + 4); std::cout << "W";
+	gotoxy(WDEFAULT + width + 3, HDEFAULT + 5); std::cout << "A   D";
+	gotoxy(WDEFAULT + width + 5, HDEFAULT + 6); std::cout << "S";
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
+	int resultTail = Snake.TailIs();  // return id allow know TAIL's location
 	for (int i = 0; i <= resultTail; ++i)
 	{
 		FindWhere(i);   // goto location element i of Snake
@@ -207,8 +216,8 @@ void DrawMap() {
 				break;
 			}
 	}
-	SHORT w = wdefault + wLocatedFood - 1;
-	SHORT h = hdefault + hLocatedFood - 1;
+	SHORT w = WDEFAULT + wLocatedFood - 1;
+	SHORT h = HDEFAULT + hLocatedFood - 1;
 	gotoxy(w, h);
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 241);
 	std::cout << "@";
@@ -221,8 +230,8 @@ void Update()
 	{
 		if (!(IsChangeTail))
 		{
-			SHORT w = wdefault + Snake.oldTailLocatedS.wL -1;
-			SHORT h = hdefault + Snake.oldTailLocatedS.hL -1;
+			SHORT w = WDEFAULT + Snake.oldTailLocatedS.wL -1;
+			SHORT h = HDEFAULT + Snake.oldTailLocatedS.hL -1;
 			gotoxy(w, h);
 			std::cout << " ";
 			IsChangeTail = false;
@@ -252,8 +261,8 @@ void Update()
 		FindWhere(1);// update behind HEAD  1 access element behind HEAD
 		std::cout << "=";
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 241);
-		SHORT w = wdefault + wLocatedFood - 1;
-		SHORT h = hdefault + hLocatedFood - 1;
+		SHORT w = WDEFAULT + wLocatedFood - 1;
+		SHORT h = HDEFAULT + hLocatedFood - 1;
 		gotoxy(w, h);
 		std::cout << "@";
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
@@ -268,8 +277,8 @@ void Update()
 void FindWhere(int i)
 {
 	// coz run located at 0,0
-	SHORT w = wdefault + Snake.elementS[i].wL -1;
-	SHORT h = hdefault + Snake.elementS[i].hL -1;
+	SHORT w = WDEFAULT + Snake.elementS[i].wL -1;
+	SHORT h = HDEFAULT + Snake.elementS[i].hL -1;
 	gotoxy(w, h);
 }
 
@@ -278,6 +287,8 @@ void InputKey() {
 	{
 		switch (_getch())
 		{
+		case LEFT_ARROW:
+		case 'A':
 		case 'a':
 			
 			if (!(dirSnake == RIGHT) ) {
@@ -286,7 +297,8 @@ void InputKey() {
 				oldDirSnake = dirSnake;
 			}
 			break;
-
+		case RIGHT_ARROW:
+		case 'D':
 		case 'd':
 			if (!(dirSnake == LEFT)) {
 				if (dirSnake == STOP && oldDirSnake == STOP)   break;
@@ -294,21 +306,23 @@ void InputKey() {
 				oldDirSnake = dirSnake;
 			}
 			break;
-
+		case UP_ARROW:
+		case 'W':
 		case 'w':
 			if (!(dirSnake == DOWN)) {
 				dirSnake = UP;
 				oldDirSnake = dirSnake;
 			}
 			break;
-
+		case DOWN_ARROW:
+		case 'S':
 		case 's':
 			if (!(dirSnake == UP)) {
 				dirSnake = DOWN;
 				oldDirSnake = dirSnake;
 			}
 			break;
-
+		//case 'P':
 		case 'p':
 			dirSnake = STOP;
 			oldDirSnake = dirSnake;
@@ -365,7 +379,7 @@ void Logic() {
 		++Snake.amoutOfFood;
 		Snake.isWhere[Snake.amoutOfFood].ID = Snake.TailIs();
 		ponitOfScore += 1;
-		gotoxy(wdefault + width / 2 -20, 2);
+		gotoxy(WDEFAULT + width / 2 -20, 2);
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 241);
 		std::cout << "Score:" << ponitOfScore;
 		do
@@ -375,8 +389,8 @@ void Logic() {
 			srand(static_cast<unsigned int>(time(NULL)));
 			hLocatedFood = rand() % (height-1);
 		} while (Snake.IsElementS(wLocatedFood,hLocatedFood));
-		SHORT w = wdefault + wLocatedFood - 1;
-		SHORT h = hdefault + hLocatedFood - 1;
+		SHORT w = WDEFAULT + wLocatedFood - 1;
+		SHORT h = HDEFAULT + hLocatedFood - 1;
 		gotoxy(w, h);
 		std::cout << "@";
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
@@ -494,7 +508,7 @@ void Menu() {
 		printf("         Control   A S D ");
 		//ShowConsoleCursor(true);
 		SetConsoleTextAttribute(console, 251);
-		gotoxy(38, 4);				printf("Snake Game");
+		gotoxy(45, 4);				printf("Snake Game");
 		SetConsoleTextAttribute(console, 240);
 		gotoxy(ARROW, NEWGAME);	printf("  NEW GAME");
 		gotoxy(ARROW, HIGHSCORE); printf("  HIGH SCORE");
@@ -510,17 +524,21 @@ void Menu() {
 			{
 				switch (_getch())
 				{
+				case UP_ARROW:
+				case 'W':
 				case 'w':
 
 					ChangeColorMenu(false, where);
 					ShowConsoleCursor(false);
 					break;
+				case DOWN_ARROW:
+				case 'S':
 				case 's':
 
 					ChangeColorMenu(true, where);
 					ShowConsoleCursor(false);
 					break;
-
+				//case 'P':
 				case 'p':
 
 					break;
@@ -878,7 +896,7 @@ int main() {
 }
 
 void Test() {
-	gotoxy(2, hdefault + height/2 );
+	gotoxy(2, HDEFAULT + height/2 );
 	std::cout << "wLocatedSnack < 0 :" << wLocatedSnack;
 	if (wLocatedSnack < 0)
 	{
@@ -936,7 +954,7 @@ void RunSound(int numberMusic){
 }
 
 void ShowLocationS() {
-	gotoxy(10, hdefault + height); 
+	gotoxy(10, HDEFAULT + height); 
 	std::cout << hLocatedSnack +1 <<":" << wLocatedSnack +1 <<"    ";
 	gotoxy(0, 0);
 	
