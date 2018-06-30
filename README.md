@@ -18,4 +18,5 @@ Menu: like control above
 
 +In ver 0.6: Now game almost have completed that u can play, change speed, save setting, save data and have top high score
 
++In ver 0.7: Add menu in play game included: Resume, New game and Exit.
 U can download here :https://drive.google.com/open?id=13OMj8Mj1ISRjIIhtYXkqDtwulPS6LL_Y

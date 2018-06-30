@@ -1,16 +1,21 @@
 #include "ClassSnake.h"
 
+ClassSnake::ClassSnake()
+{
+}
+
 ClassSnake::ClassSnake(int w,int h)
 {
 	elementS[HEAD].wL = w;
 	elementS[HEAD].hL = h;
+	TAIL = 0;
+	isEat = false;
+	amoutOfFood = 0;
 }
 
 ClassSnake::~ClassSnake()
 {
-	TAIL = 0;
-	isEat = false;
-	amoutOfFood = 0;
+	
 }
 
 int ClassSnake::TailIs()

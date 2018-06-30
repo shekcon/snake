@@ -8,6 +8,7 @@ struct Located
 class ClassSnake
 {
 public:
+	ClassSnake();
 	ClassSnake(int w,int h);//create head of Snake
 	~ClassSnake();
 	int  TailIs();			// return located of tail in Snake 

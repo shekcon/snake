@@ -33,28 +33,39 @@ after that show menu again
 //using namespace std;
 enum Direction { STOP, LEFT, RIGHT, UP, DOWN };
 HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE); // For use of SetConsoleTextAttribute()
-#define		WDEFAULT	10   // distance of height until draw map
-#define		HDEFAULT	6	 // distance of width  until draw map
-#define		NEWGAME		8
-#define		HIGHSCORE	9
-#define		SPEED		10
-#define		CONTROL		11
-#define		EXIT		12
-#define		ARROW		42
-#define		PONITER		43
-#define		TEXTS		44
-#define		BACKGROUND	1
-#define		EFFECT		2
-#define		NOSOUND		0
-#define		UP_ARROW	72
-#define		LEFT_ARROW	75
-#define		RIGHT_ARROW 77
-#define		DOWN_ARROW	80
+#define		WDEFAULT		10   // distance of height until draw map
+#define		HDEFAULT		6	 // distance of width  until draw map
+#define		NEWGAME			8
+#define		HIGHSCORE		9
+#define		SPEED			10
+#define		CONTROL			11
+#define		EXIT			12
+#define		ARROW			42
+#define		PONITER			43
+#define		TEXTS			44
+#define		BACKGROUND		1
+#define		EFFECT			2
+#define		NOSOUND			0
+#define		UP_ARROW		72
+#define		LEFT_ARROW		75
+#define		RIGHT_ARROW		77
+#define		DOWN_ARROW		80
+#define		WHITE_Black		240
+#define		WHITE_Blue		241
+#define		BLACK_White		1
+#define		ICEBLUE_Black   176
+#define		ICEBLUE_Blue    177
+#define		ENTER			13
+#define		ESC				27
+
+#define		PRINT			std::cout<<
+#define		ENDLINE			std::endl
+#define		STRING			std::string
 //define function
-void RunSnack();
-void Inital();
+void PlayingGame();
+void InitGame();
 void DrawMap();
-void Update();
+void RunSnake();
 void FindWhere(int i);
 void InputKey();
 void Logic();
@@ -72,7 +83,8 @@ void RunSound(int numberMusic);
 void OldOptionMenu(int oldOption);
 void NewOptionMenu(int newOption);
 int  ChangeColorMenu(bool Mode, int &where);
-void TestChangeMenu(std::string textOld, std::string textNew, int locationOld, int locationNew, int whereBegin);
+void ChangeMenu(std::string textOld, std::string textNew, int locationOld, int locationNew, int whereBegin);
+void ChangeMenu(STRING textOld, STRING textNew, int locationOld, int locationNew, int whereBeginOld, int whereBeginNew);
 void ChangeSpeed();
 void ReadFile();
 int  ConvertToInt(std::string  s);
@@ -84,6 +96,10 @@ void IsHighScore();
 void ShowHighScore();
 std::string GetNamePlayer();
 void WaitAfterPlaying();
+void SetColor(WORD color);
+void ShowMenuPlaying();
+void DelMenuPlaying();
+void DrawSnakeFood();
 // define variable type
 
 struct WorkFile
@@ -107,7 +123,7 @@ const int width = 45;
 const int height = 23;
 int wLocatedSnack, hLocatedSnack, wLocatedFood, hLocatedFood;
 Direction dirSnake ;
-ClassSnake Snake= ClassSnake(width / 2 - 1, height / 2 - 1);
+ClassSnake Snake;
 int ponitOfScore;
 Direction oldDirSnake ;
 Location newplace;
@@ -119,6 +135,11 @@ bool exitGame = false;
 bool reloadMenu;
 bool playBack = false;
 std::string isDefaultWork;
+bool IsReloadGame = false;
+bool IsBackMenu = false;
+
+
+
 /*  x = width : y = height */ 
 void gotoxy(SHORT x,SHORT y )
 {
@@ -129,8 +150,8 @@ void gotoxy(SHORT x,SHORT y )
 	SetConsoleCursorPosition(h, c);
 }  
 
-void Inital() {
-	 
+void InitGame() {
+	Snake = ClassSnake(width / 2 - 1, height / 2 - 1);
 	wLocatedSnack = width / 2 -1;
 	hLocatedSnack = height / 2 -1;
 	Snake.AddTail(wLocatedSnack+ 1, hLocatedSnack);
@@ -142,6 +163,7 @@ void Inital() {
 	oldDirSnake = STOP;
 	statusGame = true;
 	ponitOfScore = 0;
+	IsBackMenu = false;
 	do
 	{
 		srand(static_cast<unsigned int>(time(NULL)));
@@ -177,13 +199,13 @@ void DrawMap() {
 				if (0 == j || (width + 2) - 1 == j)
 				{
 					if (0 == j) std::cout << "\t";
-					
 					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 1);
 					std::cout << " ";
 				}
 				else 
-				{ SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240); 
-				std::cout << " ";
+				{
+					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
+					std::cout << " ";
 				}
 
 			}
@@ -203,29 +225,10 @@ void DrawMap() {
 	gotoxy(WDEFAULT + width + 3, HDEFAULT + 5); std::cout << "A   D";
 	gotoxy(WDEFAULT + width + 5, HDEFAULT + 6); std::cout << "S";
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
-	int resultTail = Snake.TailIs();  // return id allow know TAIL's location
-	for (int i = 0; i <= resultTail; ++i)
-	{
-		FindWhere(i);   // goto location element i of Snake
-			switch (i)
-			{
-			case 0:
-				std::cout << ">";
-				break;
-			default:
-				std::cout << "=";
-				break;
-			}
-	}
-	SHORT w = WDEFAULT + wLocatedFood - 1;
-	SHORT h = HDEFAULT + hLocatedFood - 1;
-	gotoxy(w, h);
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 241);
-	std::cout << "@";
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
+	
 }
 
-void Update()
+void RunSnake()
 {
 	if (dirSnake!=STOP)
 	{
@@ -328,8 +331,8 @@ void InputKey() {
 			dirSnake = STOP;
 			oldDirSnake = dirSnake;
 			break;
-		case 27://ESC
-			statusGame = false;
+		case ESC://ESC
+			ShowMenuPlaying();
 			break;
 		default:
 
@@ -415,8 +418,8 @@ void IsDefeat() {
 	ShowConsoleCursor(false);
 	gotoxy(25, 8);
 	std::cout << "GAME OVER";
-	Snake.~ClassSnake();
-	Snake = ClassSnake(width / 2 - 1, height / 2 - 1);
+	//Snake.~ClassSnake();
+	//Snake = ClassSnake(width / 2 - 1, height / 2 - 1);
 	Sleep(900);
 }   
 
@@ -447,9 +450,10 @@ void Welcome() {
 	font->FontFamily = FF_DECORATIVE;
 	SetCurrentConsoleFontEx(cons, 0, font);*/
 	//ReadFile();
+	std::cout << "something";
 	RunSound(BACKGROUND);
 	SetConsoleTitle(TEXT("Snake @Shekcon"));
-	SetConsoleTextAttribute(console, 241);
+	SetColor(WHITE_Blue);
 	HWND console = GetConsoleWindow();
 	statusGame = true;
 	MoveWindow(console, 500, 150, 750, 500, TRUE);
@@ -480,6 +484,8 @@ void Welcome() {
 void Menu() {
 	do
 	{
+		SetWindow(500, 750);
+		UpdateScroll();
 		ShowConsoleCursor(false);
 		if (playBack)
 		{
@@ -506,7 +512,7 @@ void Menu() {
 		printf("              \\__/      \\ _ _ \\|\\ \n");
 		printf("\n\n");
 		printf("                     W               \n");
-		printf("         Control   A S D ");
+		printf("         Control   A S D                             Welcome");
 		//ShowConsoleCursor(true);
 		SetConsoleTextAttribute(console, 251);
 		gotoxy(45, 4);				printf("Snake Game");
@@ -558,12 +564,14 @@ void Menu() {
 					{
 						RunSound(NOSOUND);
 						ShowConsoleCursor(false);
-						Inital();
-						RunSnack();
-						IsDefeat();
-						IsHighScore();
-						ShowHighScore();
-						WaitAfterPlaying();
+						PlayingGame();
+						if (!IsBackMenu)
+						{
+							IsDefeat();
+							IsHighScore();
+							ShowHighScore();
+							WaitAfterPlaying();
+						}
 						statusGame = false;
 						reloadMenu = true;
 						playBack = true;
@@ -626,22 +634,15 @@ void ChangeSpeed(){
 			switch (_getch())
 			{
 			case 'w':
-				if (isExit) {
-					TestChangeMenu("EXIT", "CHANGE", 6, 5, 27);
-					isExit = false;
-				}
-				else {
-					TestChangeMenu("CHANGE", "EXIT", 5, 6, 27);
-					isExit = true;
-				}
-				break;
 			case 's':
+			case 'S':
+			case 'W':
 				if (isExit) {
-					TestChangeMenu("EXIT", "CHANGE", 6, 5, 27);
+					ChangeMenu("EXIT", "CHANGE", 6, 5, 27);
 					isExit = false;
 				}
 				else {
-					TestChangeMenu("CHANGE", "EXIT", 5, 6, 27);
+					ChangeMenu("CHANGE", "EXIT", 5, 6, 27);
 					isExit = true;
 				}
 				break;
@@ -685,7 +686,7 @@ void ChangeControl() {
 void WaitAfterPlaying(){
 	int i = 0;
 	gotoxy(10, 12); std::cout << " Press anything to contiue";
-	gotoxy(35, 18); std::cout << "5 seconds go back Menu";
+	gotoxy(36, 18); std::cout << "5s go back MainMenu";
 	do
 	{
 
@@ -699,10 +700,175 @@ void WaitAfterPlaying(){
 		else if (500 == i) break;
 		if (i % 10 == 0 && i != 0)
 		{
-			gotoxy(35, 18);
+			gotoxy(36, 18);
 			std::cout << 5 - (i / 100);
 		}
 	} while (true);
+}
+
+/*	Background-Foreground
+	WHITE-Black
+	WHITE-Blue
+	BLACK-White
+	ICEBLUE-Black
+	ICEBLUE-Blue
+*/
+void SetColor(WORD color)
+{
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
+
+void ShowMenuPlaying()
+{
+	SetColor(ICEBLUE_Blue);
+	int default_w = WDEFAULT + 16;
+	for (int x = HDEFAULT+3; x < HDEFAULT + 8; ++x)
+	{
+		gotoxy(default_w, x);
+		for (int i = 0; i < 12; ++i)
+		{
+			PRINT " ";
+		}
+	}
+	int p_resume = default_w + 3;
+	int p_newgame = default_w + 2;
+	int p_exit = default_w + 4;
+	gotoxy(p_resume-2, HDEFAULT + 4);  PRINT "> Resume";
+	SetColor(ICEBLUE_Black);
+	gotoxy(p_newgame, HDEFAULT + 5); PRINT "New game";
+	gotoxy(p_exit, HDEFAULT + 6);    PRINT "Exit";
+	bool IsPressed = false;
+	int where = 0;
+	int result;
+	do
+	{
+		if(_kbhit()){
+			switch (_getch())
+			{
+			case UP_ARROW:
+			case 'W':
+			case 'w':
+				if (--where == -1) where = 2;
+				switch (where)
+				{
+				case 0:
+					ChangeMenu("New game", "Resume", HDEFAULT + 5, HDEFAULT + 4, p_newgame-2 , p_resume-2 );
+					break;
+
+				case 1:
+					ChangeMenu("Exit", "New game", HDEFAULT + 6, HDEFAULT + 5, p_exit-2, p_newgame-2);
+					break;
+
+				case 2:
+					ChangeMenu("Resume", "Exit", HDEFAULT + 4, HDEFAULT + 6, p_resume-2, p_exit-2);
+				default:
+					break;
+				}
+				break;
+
+			case DOWN_ARROW:
+			case 'S':
+			case 's':
+				if (++where == 3) where = 0;
+				switch (where)
+				{
+				case 0:
+					ChangeMenu("Exit", "Resume", HDEFAULT + 6, HDEFAULT + 4, p_exit - 2, p_resume - 2);
+					break;
+
+				case 1:
+					ChangeMenu("Resume", "New game", HDEFAULT +4, HDEFAULT + 5, p_resume - 2, p_newgame - 2);
+					break;
+
+				case 2:
+					ChangeMenu("New game", "Exit", HDEFAULT + 5, HDEFAULT + 6, p_newgame - 2, p_exit - 2);
+				default:
+					break;
+				}
+				break;
+
+			case ENTER:
+			{
+				switch (where)
+				{
+				case 0:
+					DelMenuPlaying();
+					DrawSnakeFood();
+					IsPressed = true;
+					break;
+
+				case 1:
+					IsReloadGame = true;
+					IsPressed = true;
+					statusGame = false;
+					break;
+
+				case 2:
+				{
+					result = MessageBox(NULL, TEXT("Do you exit?"), TEXT("Comfirm"), MB_OKCANCEL);
+					if (result == 1) {
+						statusGame = false;
+						IsPressed = true;
+						IsBackMenu = true;
+					}
+				}
+				break;
+				default:
+					break;
+				}
+			}
+				break;
+
+			case ESC:
+				DelMenuPlaying();
+				DrawSnakeFood();
+				IsPressed = true;
+				break;
+			default:
+				break;
+			}
+		}
+	} while (!IsPressed);
+	SetColor(WHITE_Black);
+}
+
+void DelMenuPlaying()
+{
+	SetColor(WHITE_Black);
+	int default_w = WDEFAULT + 16;
+	for (int x = HDEFAULT + 3; x < HDEFAULT + 8; ++x)
+	{
+		gotoxy(default_w, x);
+		for (int i = 0; i < 12; ++i)
+		{
+			PRINT " ";
+		}
+	}
+
+}
+
+void DrawSnakeFood()
+{
+	int resultTail = Snake.TailIs();  // return id allow know TAIL's location
+	for (int i = 0; i <= resultTail; ++i)
+	{
+		FindWhere(i);   // goto location element i of Snake
+		switch (i)
+		{
+		case 0:
+			std::cout << ">";
+			break;
+		default:
+			std::cout << "=";
+			break;
+		}
+	}
+	SHORT w = WDEFAULT + wLocatedFood - 1;
+	SHORT h = HDEFAULT + hLocatedFood - 1;
+	gotoxy(w, h);
+	SetColor(WHITE_Blue);
+	std::cout << "@";
+	SetColor(WHITE_Black);
 }
 
 void NewOptionMenu(int newOption) {
@@ -710,7 +876,7 @@ void NewOptionMenu(int newOption) {
 	{
 	case NEWGAME:
 		SetConsoleTextAttribute(console, 241);
-		gotoxy(ARROW, NEWGAME);			std::cout << "> NEW GAME";
+		gotoxy(ARROW, NEWGAME);			PRINT "> NEW GAME";
 		SetConsoleTextAttribute(console, 240);
 		break;
 
@@ -778,12 +944,24 @@ void OldOptionMenu(int oldOption) {
 	}
 }
 
-void TestChangeMenu(std::string textOld, std::string textNew, int locationOld, int locationNew, int whereBegin) {
+void ChangeMenu(std::string textOld, std::string textNew, 
+				int locationOld, int locationNew, int whereBegin) {
 	gotoxy((SHORT)whereBegin, (SHORT)locationOld); std::cout << "  " << textOld;
-	SetConsoleTextAttribute(console, 241);
 	gotoxy((SHORT)whereBegin, (SHORT)locationNew); std::cout << "> " << textNew ;
 	SetConsoleTextAttribute(console, 240);
 }
+
+void ChangeMenu(STRING textOld, STRING textNew, 
+					int locationOld, int locationNew, 
+					int whereBeginOld, int whereBeginNew) 
+{
+	SetColor(ICEBLUE_Blue);
+	gotoxy((SHORT)whereBeginNew, (SHORT)locationNew); std::cout << "> " << textNew;
+	SetColor(ICEBLUE_Black);
+	gotoxy((SHORT)whereBeginOld, (SHORT)locationOld); std::cout << "  " << textOld;
+	
+}
+
 
 /*Mode = false : UP   true : DOWN*/
 int ChangeColorMenu(bool Mode, int &where){
@@ -872,22 +1050,30 @@ void ShowConsoleCursor(bool showFlag)
 	SetConsoleCursorInfo(out, &cursorInfo);
 }
 
-void RunSnack() {
+void PlayingGame() {
 	//HWND console = GetConsoleWindow();
 	//MoveWindow(console, 500, 150, 750, 800, TRUE);
 	SetWindow(780, 750);
-	ShowConsoleCursor(false);
-	DrawMap();
+	UpdateScroll();
 	do
 	{
-		Update();
-		ShowLocationS();
-		Sleep(Speed[speedOfSnake]);
-		InputKey();
-		Logic();
-		//Test();
+		InitGame();
+		IsReloadGame = false;
+		ShowConsoleCursor(false);
+		DrawMap();
+		DrawSnakeFood();
+		do
+		{
+			RunSnake();
+			ShowLocationS();
+			Sleep(Speed[speedOfSnake]);
+			InputKey();
+			Logic();
+			//Test();
 		
-	} while (statusGame);
+		} while (statusGame);
+
+	} while (IsReloadGame);
 }
 
 void UpdateScroll() {
@@ -1214,3 +1400,4 @@ void ShowHighScore() {
 		gotoxy(30, 3 + y);	std::cout << contextFile[y].numberS;
 	}
 }
+
