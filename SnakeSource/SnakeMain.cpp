@@ -83,8 +83,8 @@ void RunSound(int numberMusic);
 void OldOptionMenu(int oldOption);
 void NewOptionMenu(int newOption);
 int  ChangeColorMenu(bool Mode, int &where);
-void ChangeMenu(std::string textOld, std::string textNew, int locationOld, int locationNew, int whereBegin);
-void ChangeMenu(STRING textOld, STRING textNew, int locationOld, int locationNew, int whereBeginOld, int whereBeginNew);
+void ChangeMenu_Speed(std::string textOld, std::string textNew, int locationOld, int locationNew, int whereBegin);
+void ChangeMenu_Play(STRING textOld, STRING textNew, int locationOld, int locationNew, int whereBeginOld, int whereBeginNew);
 void ChangeSpeed();
 void ReadFile();
 int  ConvertToInt(std::string  s);
@@ -420,7 +420,16 @@ void IsDefeat() {
 	std::cout << "GAME OVER";
 	//Snake.~ClassSnake();
 	//Snake = ClassSnake(width / 2 - 1, height / 2 - 1);
-	Sleep(900);
+	int time = 0;
+	do
+	{
+		Sleep(10);
+		if (_kbhit()) {
+			_getch();
+			break;
+		}
+
+	} while (++time*10<= 1000);
 }   
 
 void CheckRules() {
@@ -439,18 +448,7 @@ void CheckRules() {
 
 /*Show menu options for user*/
 void Welcome() {
-	
-	/*HANDLE cons = GetStdHandle(STD_OUTPUT_HANDLE);
-	PCONSOLE_FONT_INFOEX font = new CONSOLE_FONT_INFOEX();
-	font->cbSize = sizeof(CONSOLE_FONT_INFOEX);
-	GetCurrentConsoleFontEx(cons, 0, font);
-	font->dwFontSize.X = 14;
-	font->dwFontSize.Y = 18;
-	font->FontWeight = 14;
-	font->FontFamily = FF_DECORATIVE;
-	SetCurrentConsoleFontEx(cons, 0, font);*/
-	//ReadFile();
-	//std::cout << "something";
+
 	RunSound(BACKGROUND);
 	SetConsoleTitle(TEXT("Snake @Shekcon"));
 	SetColor(WHITE_Blue);
@@ -545,22 +543,11 @@ void Menu() {
 					ChangeColorMenu(true, where);
 					ShowConsoleCursor(false);
 					break;
-				//case 'P':
-				case 'p':
-
-					break;
-				case 27://ESC
-				{
-					int resultEsc = MessageBox(NULL, TEXT("Do you close?"), TEXT("Comfirm"), MB_OKCANCEL);
-					if (resultEsc == 1) {
-						exitGame = true;
-					}
-					break;
-				}
-				case 13:
+				
+				case ENTER:
 					switch (where)
 					{
-					case 8: //NEW GAME
+					case NEWGAME: //NEW GAME
 					{
 						RunSound(NOSOUND);
 						ShowConsoleCursor(false);
@@ -578,27 +565,28 @@ void Menu() {
 					}
 						break;
 
-					case 9://HIGH SCORE
+					case HIGHSCORE://HIGH SCORE
 						ShowHighScore();
 						Sleep(2000);
 						statusGame = false;
 						reloadMenu = true;
 						break;
 
-					case 10://SPEED
+					case SPEED://SPEED
 						system("cls");
 						ChangeSpeed();
 						statusGame = false;
 						reloadMenu = true;
 						break;
 
-					case 11://CONTROL
+					case CONTROL://CONTROL
 
 						break;
 
-					case 12://EXIT
+					case ESC://ESC
+					case EXIT://EXIT
 					{
-						int result = MessageBox(NULL, TEXT("Do you close?"), TEXT("Comfirm"), MB_OKCANCEL);
+						int result = MessageBox(NULL, TEXT("Do you exit game?"), TEXT("Comfirm"), MB_OKCANCEL);
 						if (result == 1) {
 							exitGame = true;
 						}
@@ -638,11 +626,11 @@ void ChangeSpeed(){
 			case 'S':
 			case 'W':
 				if (isExit) {
-					ChangeMenu("EXIT", "CHANGE", 6, 5, 27);
+					ChangeMenu_Speed("EXIT", "CHANGE", 6, 5, 27);
 					isExit = false;
 				}
 				else {
-					ChangeMenu("CHANGE", "EXIT", 5, 6, 27);
+					ChangeMenu_Speed("CHANGE", "EXIT", 5, 6, 27);
 					isExit = true;
 				}
 				break;
@@ -752,15 +740,15 @@ void ShowMenuPlaying()
 				switch (where)
 				{
 				case 0:
-					ChangeMenu("New game", "Resume", HDEFAULT + 5, HDEFAULT + 4, p_newgame-2 , p_resume-2 );
+					ChangeMenu_Play("New game", "Resume", HDEFAULT + 5, HDEFAULT + 4, p_newgame-2 , p_resume-2 );
 					break;
 
 				case 1:
-					ChangeMenu("Exit", "New game", HDEFAULT + 6, HDEFAULT + 5, p_exit-2, p_newgame-2);
+					ChangeMenu_Play("Exit", "New game", HDEFAULT + 6, HDEFAULT + 5, p_exit-2, p_newgame-2);
 					break;
 
 				case 2:
-					ChangeMenu("Resume", "Exit", HDEFAULT + 4, HDEFAULT + 6, p_resume-2, p_exit-2);
+					ChangeMenu_Play("Resume", "Exit", HDEFAULT + 4, HDEFAULT + 6, p_resume-2, p_exit-2);
 				default:
 					break;
 				}
@@ -773,15 +761,15 @@ void ShowMenuPlaying()
 				switch (where)
 				{
 				case 0:
-					ChangeMenu("Exit", "Resume", HDEFAULT + 6, HDEFAULT + 4, p_exit - 2, p_resume - 2);
+					ChangeMenu_Play("Exit", "Resume", HDEFAULT + 6, HDEFAULT + 4, p_exit - 2, p_resume - 2);
 					break;
 
 				case 1:
-					ChangeMenu("Resume", "New game", HDEFAULT +4, HDEFAULT + 5, p_resume - 2, p_newgame - 2);
+					ChangeMenu_Play("Resume", "New game", HDEFAULT +4, HDEFAULT + 5, p_resume - 2, p_newgame - 2);
 					break;
 
 				case 2:
-					ChangeMenu("New game", "Exit", HDEFAULT + 5, HDEFAULT + 6, p_newgame - 2, p_exit - 2);
+					ChangeMenu_Play("New game", "Exit", HDEFAULT + 5, HDEFAULT + 6, p_newgame - 2, p_exit - 2);
 				default:
 					break;
 				}
@@ -944,7 +932,7 @@ void OldOptionMenu(int oldOption) {
 	}
 }
 
-void ChangeMenu(std::string textOld, std::string textNew, 
+void ChangeMenu_Speed(std::string textOld, std::string textNew, 
 				int locationOld, int locationNew, int whereBegin) {
 	gotoxy((SHORT)whereBegin, (SHORT)locationOld); std::cout << "  " << textOld;
 	SetColor(WHITE_Blue);
@@ -952,7 +940,7 @@ void ChangeMenu(std::string textOld, std::string textNew,
 	SetColor(WHITE_Black);
 }
 
-void ChangeMenu(STRING textOld, STRING textNew, 
+void ChangeMenu_Play(STRING textOld, STRING textNew, 
 					int locationOld, int locationNew, 
 					int whereBeginOld, int whereBeginNew) 
 {
@@ -1067,8 +1055,13 @@ void PlayingGame() {
 		{
 			RunSnake();
 			ShowLocationS();
-			Sleep(Speed[speedOfSnake]);
-			InputKey();
+			int time = 0;
+			do
+			{
+				Sleep(10);
+				++time;
+				InputKey();
+			} while (time*10<=Speed[speedOfSnake]);
 			Logic();
 			//Test();
 		

@@ -85,6 +85,7 @@ StyleCopReport.xml
 *.svclog
 *.scc
 Snake.h
+SnakeSource/config.ino
 # Chutzpah Test files
 _Chutzpah*
 
