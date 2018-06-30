@@ -450,7 +450,7 @@ void Welcome() {
 	font->FontFamily = FF_DECORATIVE;
 	SetCurrentConsoleFontEx(cons, 0, font);*/
 	//ReadFile();
-	std::cout << "something";
+	//std::cout << "something";
 	RunSound(BACKGROUND);
 	SetConsoleTitle(TEXT("Snake @Shekcon"));
 	SetColor(WHITE_Blue);
@@ -947,8 +947,9 @@ void OldOptionMenu(int oldOption) {
 void ChangeMenu(std::string textOld, std::string textNew, 
 				int locationOld, int locationNew, int whereBegin) {
 	gotoxy((SHORT)whereBegin, (SHORT)locationOld); std::cout << "  " << textOld;
+	SetColor(WHITE_Blue);
 	gotoxy((SHORT)whereBegin, (SHORT)locationNew); std::cout << "> " << textNew ;
-	SetConsoleTextAttribute(console, 240);
+	SetColor(WHITE_Black);
 }
 
 void ChangeMenu(STRING textOld, STRING textNew, 
