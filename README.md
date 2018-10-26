@@ -6,7 +6,7 @@
 
 #### But in the furture i hope get more stuff in game like menu, save info and setting.
 
-#### If U dont understand something or help me improve coding, maybe figure out some bug  just contact me on fb account https://fb.com/shekcon
+#### If someone dont understand something or help me improve coding, maybe figure out some bug just contact me on fb account  [Shekcon](https://fb.com/shekcon)
 
 ### In ver 0.2:
  - Have better welcome console
@@ -39,4 +39,4 @@
 ### In ver 0.7: 
  - Add menu in play game included: Resume, New game and Exit.
 
-# U can download game link here: https://drive.google.com/open?id=13OMj8Mj1ISRjIIhtYXkqDtwulPS6LL_Y
+### [Download](https://drive.google.com/open?id=13OMj8Mj1ISRjIIhtYXkqDtwulPS6LL_Y)
