@@ -32,4 +32,10 @@
 ### In ver 0.7: 
  - Add menu in play game included: Resume, New game and Exit.
 
-### [Download](https://drive.google.com/open?id=13OMj8Mj1ISRjIIhtYXkqDtwulPS6LL_Y)
+## Screenshots:
+
+![Welcome](img/welcome.PNG)
+![Play](img/playing.PNG)
+![Playing](img/playing2.PNG)
+
+### [Download](https://github.com/Shekcon/Snake/releases/tag/v1)

@@ -1,4 +1,4 @@
-﻿
+﻿﻿
 /*define function include
 function ShowMenu : options for user choose(map,speed,more changelle) & play & show hight score
 function RunSnake : play game & check flag of status game
@@ -24,10 +24,10 @@ after that show menu again
 #include <string>
 #include <mmsystem.h>
 #include <thread>
-#include<fstream>
+#include <fstream>
 #include <math.h>
 #include "resource.h"
-#include<stdlib.h>
+#include <stdlib.h>
 #include "ClassSnake.h"
 #pragma comment(lib, "winmm.lib")
 //using namespace std;
@@ -62,11 +62,11 @@ HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE); // For use of SetConsoleTextAt
 #define		ENDLINE			std::endl
 #define		STRING			std::string
 //define function
-void PlayingGame();
+void Play();
 void InitGame();
 void DrawMap();
 void RunSnake();
-void FindWhere(int i);
+void FindPositionConsole(int i);
 void InputKey();
 void Logic();
 void IsDefeat();
@@ -219,13 +219,14 @@ void DrawMap() {
 			std::cout << " ";
 		}
 	}
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 243);
+	SetColor(243);
 	gotoxy(WDEFAULT+width+2, HDEFAULT + 2); std::cout << "Control";
 	gotoxy(WDEFAULT + width + 5, HDEFAULT + 4); std::cout << "W";
 	gotoxy(WDEFAULT + width + 3, HDEFAULT + 5); std::cout << "A   D";
 	gotoxy(WDEFAULT + width + 5, HDEFAULT + 6); std::cout << "S";
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 240);
-	
+	gotoxy(WDEFAULT + width + 3, HDEFAULT + 9); std::cout << "Menu";
+	gotoxy(WDEFAULT + width + 4, HDEFAULT + 11); std::cout << "ESC";
+	SetColor(WHITE_Black);
 }
 
 void RunSnake()
@@ -240,7 +241,7 @@ void RunSnake()
 			std::cout << " ";
 			IsChangeTail = false;
 		}
-		FindWhere(0); // update HEAD   0 access HEAD
+		FindPositionConsole(0); // update HEAD   0 access HEAD
 		switch (dirSnake)
 		{
 		case LEFT:
@@ -262,7 +263,7 @@ void RunSnake()
 		default:
 			break;
 		}
-		FindWhere(1);// update behind HEAD  1 access element behind HEAD
+		FindPositionConsole(1);// update behind HEAD  1 access element behind HEAD
 		std::cout << "=";
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 241);
 		SHORT w = WDEFAULT + wLocatedFood - 1;
@@ -278,7 +279,7 @@ void RunSnake()
 }
 
 /*goto location element i of Snake */
-void FindWhere(int i)
+void FindPositionConsole(int i)
 {
 	// coz run located at 0,0
 	SHORT w = WDEFAULT + Snake.elementS[i].wL -1;
@@ -436,7 +437,8 @@ void CheckRules() {
 	if (wLocatedSnack > width-1    || 
 		wLocatedSnack < 0          ||
 		hLocatedSnack > height-1   ||
-		hLocatedSnack < 0		   || !(Snake.RunSnake(newplace.w, newplace.h)))
+		hLocatedSnack < 0		   || 
+		!(Snake.RunSnake(newplace.w, newplace.h)))
 	{
 		statusGame = false;
 	}
@@ -551,7 +553,7 @@ void Menu() {
 					{
 						RunSound(NOSOUND);
 						ShowConsoleCursor(false);
-						PlayingGame();
+						Play();
 						if (!IsBackMenu)
 						{
 							IsDefeat();
@@ -586,10 +588,7 @@ void Menu() {
 					case ESC://ESC
 					case EXIT://EXIT
 					{
-						int result = MessageBox(NULL, TEXT("Do you exit game?"), TEXT("Comfirm"), MB_OKCANCEL);
-						if (result == 1) {
-							exitGame = true;
-						}
+						exitGame = true;
 						break;
 					}
 					default:
@@ -621,6 +620,8 @@ void ChangeSpeed(){
 		{
 			switch (_getch())
 			{
+			case UP_ARROW:
+			case DOWN_ARROW:
 			case 'w':
 			case 's':
 			case 'S':
@@ -793,12 +794,9 @@ void ShowMenuPlaying()
 
 				case 2:
 				{
-					result = MessageBox(NULL, TEXT("Do you exit?"), TEXT("Comfirm"), MB_OKCANCEL);
-					if (result == 1) {
-						statusGame = false;
-						IsPressed = true;
-						IsBackMenu = true;
-					}
+					statusGame = false;
+					IsPressed = true;
+					IsBackMenu = true;
 				}
 				break;
 				default:
@@ -840,7 +838,7 @@ void DrawSnakeFood()
 	int resultTail = Snake.TailIs();  // return id allow know TAIL's location
 	for (int i = 0; i <= resultTail; ++i)
 	{
-		FindWhere(i);   // goto location element i of Snake
+		FindPositionConsole(i);   // goto location element i of Snake
 		switch (i)
 		{
 		case 0:
@@ -1039,7 +1037,7 @@ void ShowConsoleCursor(bool showFlag)
 	SetConsoleCursorInfo(out, &cursorInfo);
 }
 
-void PlayingGame() {
+void Play() {
 	//HWND console = GetConsoleWindow();
 	//MoveWindow(console, 500, 150, 750, 800, TRUE);
 	SetWindow(780, 750);
@@ -1190,8 +1188,12 @@ void ReadFile()
 		
 		while (File.good())
 		{
-			if (-1 == i) { std::getline(File, isDefaultWork); 
-			if (isDefaultWork[0] != 'T') { i = -1; break; }
+			if (-1 == i) { 
+				std::getline(File, isDefaultWork); 
+				if (isDefaultWork[0] != 'T') { 
+					i = -1; 
+					break;
+				}
 			}
 			else std::getline(File, contextFile[i].text);
 			++i;
@@ -1254,7 +1256,7 @@ void WriteFileS() {
 	int i = 0;
 	if (!File.is_open())
 	{
-		//MessageBox(NULL, TEXT("Can't loading data"), TEXT("Error"), MB_OK);
+		MessageBox(NULL, TEXT("Can't store data"), TEXT("Error"), MB_OK);
 	}
 	else {
 
@@ -1277,7 +1279,6 @@ void FirstRunConfig(){
 		MessageBox(NULL,TEXT("Can't loading data"),TEXT("Error"),MB_OK);
 	}
 	else {
-		//fputc('T', createFile);
 		fclose(createFile);
 		//notice have write default info into file
 	}
@@ -1394,4 +1395,3 @@ void ShowHighScore() {
 		gotoxy(30, 3 + y);	std::cout << contextFile[y].numberS;
 	}
 }
-
